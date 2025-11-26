@@ -1,0 +1,13 @@
+[
+    {
+        "id": "chessdash.diamondtp",
+        "name": "Diamond TP",
+        "creator": "ChessDash543",
+        "resolution": ["high","medium"],
+        "download": "https://tws.m336.dev/api/v1/tws/getPack/118.zip",
+        "description": "Remake of Diamond TP...",
+        "version": "v4.0.7",
+        "icon": "https://i.imgur.com/CZty6T6.png",
+        "screenshot": "https://i.imgur.com/rWGBKKL.png"
+    }
+]

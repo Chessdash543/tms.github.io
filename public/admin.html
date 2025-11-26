@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Add Texture Pack</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+<form id="adminForm">
+  <input type="text" placeholder="ID" id="id" required><br>
+  <input type="text" placeholder="Nome" id="name" required><br>
+  <input type="text" placeholder="Criador" id="creator" required><br>
+  <select id="resolution">
+    <option selected disabled>Resolutions</option>
+    <option value="high">High</option>
+    <option value="medium">Medium</option>
+    <option value="low">Low</option>
+    <option value="high-medium">High, Medium</option>
+    <option value="high-low">High, Low</option>
+    <option value="medium-low">Medium, low</option>
+    </select>
+  <input type="url" placeholder="Download URL" id="download" required><br>
+  <input type="text" placeholder="Descrição" id="description"><br>
+  <input type="text" placeholder="Versão" id="version"><br>
+  <input type="url" placeholder="Icon URL" id="icon"><br>
+  <input type="url" placeholder="Screenshot URL" id="screenshot"><br>
+  <button type="submit">Adicionar Pack</button>
+</form>
+
+<script>
+const form = document.getElementById("adminForm");
+form.addEventListener("submit", async e => {
+    e.preventDefault();
+    let resolutionValue = document.getElementById("resolution").value;
+    let resolution = resolutionValue.includes("-") 
+        ? resolutionValue.split("-") 
+        : [resolutionValue];
+
+    const pack = {
+        id: document.getElementById("id").value,
+        name: document.getElementById("name").value,
+        creator: document.getElementById("creator").value,
+        resolution: resolution,
+        download: document.getElementById("download").value,
+        description: document.getElementById("description").value,
+        version: document.getElementById("version").value,
+        icon: document.getElementById("icon").value,
+        screenshot: document.getElementById("screenshot").value
+    };
+
+    const res = await fetch("/api/packs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(pack)
+    });
+
+    const data = await res.json();
+    if (data.success) alert("Pack adicionado com sucesso!");
+});
+</script>
+</body>
+</html>

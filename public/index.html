@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Texture Makers Server</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1 class="title">Texture Makers Server</h1>
+
+    <div class="top-bar">
+        <input type="search" id="search" placeholder="Search Texture Pack...">
+        <button id="searchBtn">Search</button>
+        <select id="filterResolution">
+            <option selected disabled>Resolutions</option>
+            <option value="all" selected>All</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+        </select>
+    </div>
+
+    <div id="cards-container"></div>
+    <div id="pagination"></div>
+
+    <!-- POPUP -->
+    <div id="popup" class="popup-bg">
+        <div class="popup-box"></div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        const cardsPerPage = 6;
+        let texturePacks = [];
+
+        fetch("./data/data.json")
+            .then(res => res.json())
+            .then(data => {
+                texturePacks = data;
+                renderCards(texturePacks);
+            });
+        const cardsContainer = document.getElementById("cards-container");
+        const searchInput = document.getElementById("search");
+        const searchBtn = document.getElementById("searchBtn");
+        const filterSelect = document.getElementById("filterResolution");
+        const popup = document.getElementById("popup");
+
+        function renderCards(list) {
+            cardsContainer.innerHTML = "";
+
+            // cálculo da paginação
+            const start = (currentPage - 1) * cardsPerPage;
+            const end = start + cardsPerPage;
+            const pageItems = list.slice(start, end);
+
+            // gerar apenas os itens da página
+            pageItems.forEach(pack => {
+                const card = document.createElement("div");
+                card.classList.add("card");
+
+                card.innerHTML = `
+                    <div class="card-top">
+                        <img src="${pack.icon}" alt="Icon" class="card-icon">
+                        <div class="card-content">
+                            <h3>${pack.name}</h3>
+                            <p>${pack.description}</p>
+                            <button class="download-btn">Download</button>
+                        </div>
+                        <button class="more-info">i</button>
+                    </div>
+                    <img src="${pack.screenshot}" alt="screenshot" class="card-screenshot">
+                `;
+
+                cardsContainer.appendChild(card);
+
+                card.querySelector(".download-btn").addEventListener("click", () => {
+                    window.open(pack.download, "_blank");
+                });
+
+                const btnMoreInfo = card.querySelector(".more-info");
+                btnMoreInfo.addEventListener("click", () => openPopup(pack));
+            });
+
+            renderPagination(list);
+        }
+
+        function renderPagination(list) {
+            const pagination = document.getElementById("pagination");
+            pagination.innerHTML = "";
+
+            const totalPages = Math.ceil(list.length / cardsPerPage);
+
+            if (totalPages <= 1) return;
+
+            // Botão anterior
+            const prev = document.createElement("button");
+            prev.textContent = "◀";
+            prev.disabled = currentPage === 1;
+            prev.onclick = () => {
+                currentPage--;
+                renderCards(list);
+            };
+            pagination.appendChild(prev);
+
+            // Números das páginas
+            for (let i = 1; i <= totalPages; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                if (i === currentPage) btn.classList.add("active-page");
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderCards(list);
+                };
+                pagination.appendChild(btn);
+            }
+
+            // Botão próximo
+            const next = document.createElement("button");
+            next.textContent = "▶";
+            next.disabled = currentPage === totalPages;
+            next.onclick = () => {
+                currentPage++;
+                renderCards(list);
+            };
+            pagination.appendChild(next);
+        }
+        function filterSearch() {
+            const text = searchInput.value.toLowerCase();
+            const resolution = filterSelect.value;
+
+            const filtered = texturePacks.filter(pack => 
+                pack.name.toLowerCase().includes(text) &&
+                (resolution === "all" || pack.resolution.includes(resolution))
+            );
+
+            renderCards(filtered);
+        }
+        searchBtn.addEventListener("click", filterSearch);
+        filterSelect.addEventListener("change", filterSearch);
+        searchInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") filterSearch();
+        });
+
+        const popupBox = popup.querySelector(".popup-box");
+
+        function openPopup(pack) {
+            popupBox.innerHTML = `
+                <div class="popup-top">
+                    <div class="popup-info">
+                        <h2>${pack.name}</h2>
+                        <p>Creator: ${pack.creator}</p>
+                        <p>Resolution: ${pack.resolution}</p>
+                        <p>Description: ${pack.description}</p>
+                        <p>Version: ${pack.version}</p>
+                        <p>ID: ${pack.id}</p>
+                        <p>Download: <a href="${pack.download}" target="_blank">Click here to download</a></p>
+                        <button id="closePopup">Close</button>
+                    </div>
+                    <img src="${pack.icon}" alt="Icon" class="pack-icon">
+                </div>
+                <img src="${pack.screenshot}" alt="screenshot" class="popup-image">
+            `;
+            popup.style.display = "flex";
+            popup.querySelector("#closePopup").addEventListener("click", () => {
+                popup.style.display = "none";
+            });
+        }
+        popup.addEventListener("click", e => {
+            if(e.target === popup) popup.style.display = "none";
+        });
+        renderCards(texturePacks);
+    </script>
+</body>
+</html>
