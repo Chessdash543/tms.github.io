@@ -5,15 +5,18 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000; // Render define a porta via variável
 
 // Configurar JSON e pasta pública
 app.use(bodyParser.json());
 app.use(express.static("public"));
 
 // Usuário e senha do admin
-const adminUser = "admin";
-const adminPass = "minhaSenha123";
+const adminUser = "CHESSDASH543";
+const adminPass = "8D9WJ49FKAS0WIE01K-QWJEFOI3J";
+
+// Caminho do arquivo JSON
+const packsFilePath = path.join(__dirname, "public", "data.json");
 
 // Middleware de autenticação
 function auth(req, res, next) {
@@ -25,23 +28,35 @@ function auth(req, res, next) {
     next();
 }
 
-// Rotas
+// Rota para admin.html
 app.get("/admin.html", auth, (req, res) => {
-    res.sendFile(path.join(__dirname, "public/admin.html"));
+    res.sendFile(path.join(__dirname, "public", "admin.html"));
 });
 
-// API para ler JSON
+// API para ler todos os packs
 app.get("/api/packs", (req, res) => {
-    const packs = JSON.parse(fs.readFileSync("./data/packs.json"));
-    res.json(packs);
+    try {
+        const packs = JSON.parse(fs.readFileSync(packsFilePath));
+        res.json(packs);
+    } catch (err) {
+        res.status(500).json({ error: "is not possible read the json" });
+    }
 });
 
-// API para adicionar pack
+// API para adicionar um novo pack
 app.post("/api/packs", auth, (req, res) => {
-    const packs = JSON.parse(fs.readFileSync("/public/packs.json"));
-    packs.push(req.body);
-    fs.writeFileSync("./data/packs.json", JSON.stringify(packs, null, 2));
-    res.json({ success: true });
+    try {
+        const packs = JSON.parse(fs.readFileSync(packsFilePath));
+        packs.push(req.body);
+        fs.writeFileSync(packsFilePath, JSON.stringify(packs, null, 2));
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ success: false, error: "is not possible add the pack" });
+    }
 });
 
-app.listen(PORT, () => console.log(`Servidor rodando em http://localhost:${PORT}`));
+// Inicializar servidor
+app.listen(PORT, () => {
+    console.log(`Servidor rodando em http://localhost:${PORT}`);
+});
+

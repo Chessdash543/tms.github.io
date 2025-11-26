@@ -48,7 +48,7 @@ form.addEventListener("submit", async e => {
         screenshot: document.getElementById("screenshot").value
     };
 
-    const res = await fetch("/api/packs", {
+    const res = await fetch("data.json", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(pack)
