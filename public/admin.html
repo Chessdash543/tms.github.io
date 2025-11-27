@@ -8,10 +8,10 @@
 </head>
 <body>
 
-<h2>Adicionar Texture Pack</h2>
+<h2>Adicionar ou Atualizar Texture Pack</h2>
 
 <form id="adminForm">
-  <input type="text" name="id" placeholder="ID" required><br>
+  <input type="text" name="id" placeholder="ID do Pack" required><br>
   <input type="text" name="name" placeholder="Nome" required><br>
   <input type="text" name="creator" placeholder="Criador" required><br>
 
@@ -31,7 +31,7 @@
   <input type="url" name="icon" placeholder="Ícone (URL)" required><br>
   <input type="url" name="screenshot" placeholder="Screenshot (URL)" required><br>
 
-  <button type="submit">Adicionar</button>
+  <button type="submit">Enviar</button>
 </form>
 
 <script>
@@ -44,6 +44,7 @@ form.addEventListener("submit", async e => {
     if (!senha) return alert("Operação cancelada.");
 
     const pack = {
+        password: senha,
         id: form.id.value.trim(),
         name: form.name.value.trim(),
         creator: form.creator.value.trim(),
@@ -55,23 +56,39 @@ form.addEventListener("submit", async e => {
         version: form.version.value.trim(),
         icon: form.icon.value.trim(),
         screenshot: form.screenshot.value.trim(),
-        downloads: 0,
-        password: senha
+        downloads: 0
     };
 
     try {
-        const res = await fetch("/api/packs", {
-            method: "POST",
+        // Primeiro tenta atualizar
+        let res = await fetch("/api/packs", {
+            method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(pack)
         });
 
-        const data = await res.json();
+        let data = await res.json();
 
         if (res.status === 401) {
             alert("❌ Senha incorreta!");
+        } else if (res.status === 404) {
+            // Se não existe, cria novo pack
+            res = await fetch("/api/packs", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(pack)
+            });
+            data = await res.json();
+
+            if (data.success) {
+                alert("✔️ Pack adicionado com sucesso!");
+                form.reset();
+            } else {
+                alert("⚠️ Erro: " + data.error);
+            }
+
         } else if (data.success) {
-            alert("✔️ Pack adicionado com sucesso!");
+            alert("✔️ Pack atualizado com sucesso!");
             form.reset();
         } else {
             alert("⚠️ Erro: " + data.error);
