@@ -44,7 +44,7 @@ app.get("/api/packs", (req, res) => {
 });
 
 // API para adicionar um novo pack
-app.post("/api/packs", auth, (req, res) => {
+app.post("/api/data", auth, (req, res) => {
     try {
         const packs = JSON.parse(fs.readFileSync(packsFilePath));
         packs.push(req.body);
