@@ -1,29 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Admin - Add Texture Pack</title>
+<title>Admin - Adicionar Texture Pack</title>
 <link rel="stylesheet" href="admin.css">
 </head>
 <body>
+
+<h2>Adicionar Texture Pack</h2>
+
 <form id="adminForm">
   <input type="text" placeholder="ID" id="id" required><br>
   <input type="text" placeholder="Nome" id="name" required><br>
   <input type="text" placeholder="Criador" id="creator" required><br>
-  <select id="resolution">
-    <option selected disabled>Resolutions</option>
+
+  <select id="resolution" required>
+    <option selected disabled>Resoluções</option>
     <option value="high">High</option>
     <option value="medium">Medium</option>
     <option value="low">Low</option>
     <option value="high-medium">High, Medium</option>
     <option value="high-low">High, Low</option>
-    <option value="medium-low">Medium, low</option>
-    </select>
-  <input type="url" placeholder="Download URL" id="download" required><br>
+    <option value="medium-low">Medium, Low</option>
+  </select><br>
+
+  <input type="url" placeholder="URL Download" id="download" required><br>
   <input type="text" placeholder="Descrição" id="description"><br>
   <input type="text" placeholder="Versão" id="version"><br>
-  <input type="url" placeholder="Icon URL" id="icon"><br>
-  <input type="url" placeholder="Screenshot URL" id="screenshot"><br>
+  <input type="url" placeholder="URL do ícone" id="icon"><br>
+  <input type="url" placeholder="URL da screenshot" id="screenshot"><br>
+
   <button type="submit">Adicionar Pack</button>
 </form>
 
@@ -31,6 +37,7 @@
 const form = document.getElementById("adminForm");
 form.addEventListener("submit", async e => {
     e.preventDefault();
+    
     let resolutionValue = document.getElementById("resolution").value;
     let resolution = resolutionValue.includes("-") 
         ? resolutionValue.split("-") 
@@ -48,15 +55,19 @@ form.addEventListener("submit", async e => {
         screenshot: document.getElementById("screenshot").value
     };
 
-    const res = await fetch("data.json", {
+    const res = await fetch("/api/packs", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Authorization": "Basic " + btoa("CHESSDASH543:8D9WJ49FKAS0WIE01K-QWJEFOI3J"),
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify(pack)
     });
 
     const data = await res.json();
-    if (data.success) alert("Added");
+    if (data.success) alert("Pack adicionado com sucesso!");
 });
 </script>
+
 </body>
 </html>

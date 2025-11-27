@@ -33,7 +33,7 @@
         const cardsPerPage = 6;
         let texturePacks = [];
 
-        fetch("data.json")
+        fetch("/api/packs")
             .then(res => res.json())
             .then(data => {
                 texturePacks = data;
