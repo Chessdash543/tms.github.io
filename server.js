@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 
 const app = express();
-const PORT = process.env.PORT || 3000; // Render define a porta via variável
+const PORT = process.env.PORT || 3000;
 
 // Configurar JSON e pasta pública
 app.use(bodyParser.json());
@@ -39,7 +39,7 @@ app.get("/api/packs", (req, res) => {
         const packs = JSON.parse(fs.readFileSync(packsFilePath));
         res.json(packs);
     } catch (err) {
-        res.status(500).json({ error: "is not possible read the json" });
+        res.status(500).json({ error: "Não foi possível ler o JSON" });
     }
 });
 
@@ -51,7 +51,7 @@ app.post("/api/packs", auth, (req, res) => {
         fs.writeFileSync(packsFilePath, JSON.stringify(packs, null, 2));
         res.json({ success: true });
     } catch (err) {
-        res.status(500).json({ success: false, error: "is not possible add the pack" });
+        res.status(500).json({ success: false, error: "Não foi possível adicionar o pack" });
     }
 });
 
@@ -59,4 +59,3 @@ app.post("/api/packs", auth, (req, res) => {
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
-

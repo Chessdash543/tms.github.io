@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Admin - Adicionar Texture Pack</title>
+<title>Admin</title>
 <link rel="stylesheet" href="admin.css">
+<link rel="icon" href="/img/icon.png" type="image/x-icon">
 </head>
 <body>
-
-<h2>Adicionar Texture Pack</h2>
-
 <form id="adminForm">
   <input type="text" placeholder="ID" id="id" required><br>
   <input type="text" placeholder="Nome" id="name" required><br>
@@ -34,39 +32,52 @@
 </form>
 
 <script>
-const form = document.getElementById("adminForm");
-form.addEventListener("submit", async e => {
+// Mesma senha do server.js
+const serverPassword = "8D9WJ49FKAS0WIE01K-QWJEFOI3J";
+
+document.getElementById("adminForm").addEventListener("submit", async e => {
     e.preventDefault();
-    
-    let resolutionValue = document.getElementById("resolution").value;
-    let resolution = resolutionValue.includes("-") 
-        ? resolutionValue.split("-") 
-        : [resolutionValue];
+
+    // Solicita a senha
+    const inputPassword = prompt("Digite a senha para adicionar o pack:");
+    if (inputPassword !== serverPassword) {
+        alert("Senha incorreta!");
+        return;
+    }
 
     const pack = {
         id: document.getElementById("id").value,
         name: document.getElementById("name").value,
         creator: document.getElementById("creator").value,
-        resolution: resolution,
+        resolution: document.getElementById("resolution").value.includes("-")
+            ? document.getElementById("resolution").value.split("-")
+            : [document.getElementById("resolution").value],
         download: document.getElementById("download").value,
         description: document.getElementById("description").value,
         version: document.getElementById("version").value,
         icon: document.getElementById("icon").value,
         screenshot: document.getElementById("screenshot").value,
-        downloads: 0    
+        downloads: 0
     };
 
-    const res = await fetch("/api/packs", {
-        method: "POST",
-        headers: {
-            "Authorization": "Basic " + btoa("CHESSDASH543:8D9WJ49FKAS0WIE01K-QWJEFOI3J"),
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(pack)
-    });
+    try {
+        const res = await fetch("/api/packs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(pack)
+        });
 
-    const data = await res.json();
-    if (data.success) alert("Pack adicionado com sucesso!");
+        const data = await res.json();
+        if (data.success) {
+            alert("Pack adicionado com sucesso!");
+            document.getElementById("adminForm").reset();
+        } else {
+            alert("Erro ao adicionar pack.");
+        }
+    } catch(err) {
+        console.error(err);
+        alert("Erro ao conectar com o servidor.");
+    }
 });
 </script>
 
