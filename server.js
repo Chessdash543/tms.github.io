@@ -34,7 +34,7 @@ app.get("/admin.html", auth, (req, res) => {
 });
 
 // API para ler todos os packs
-app.get("/api/data.json", (req, res) => {
+app.get("/api/packs", (req, res) => {
     try {
         const packs = JSON.parse(fs.readFileSync(packsFilePath));
         res.json(packs);
@@ -44,7 +44,7 @@ app.get("/api/data.json", (req, res) => {
 });
 
 // API para adicionar um novo pack
-app.post("/api/data.json", auth, (req, res) => {
+app.post("/api/packs", auth, (req, res) => {
     try {
         const packs = JSON.parse(fs.readFileSync(packsFilePath));
         packs.push(req.body);
