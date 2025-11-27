@@ -52,10 +52,11 @@ form.addEventListener("submit", async e => {
         description: document.getElementById("description").value,
         version: document.getElementById("version").value,
         icon: document.getElementById("icon").value,
-        screenshot: document.getElementById("screenshot").value
+        screenshot: document.getElementById("screenshot").value,
+        downloads: 0    
     };
 
-    const res = await fetch("/api/data", {
+    const res = await fetch("/api/packs", {
         method: "POST",
         headers: {
             "Authorization": "Basic " + btoa("CHESSDASH543:8D9WJ49FKAS0WIE01K-QWJEFOI3J"),
