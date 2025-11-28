@@ -271,46 +271,106 @@ input:hover, select:hover, button:hover {
     color: #ddd;       /* opcional: deixa o texto levemente cinza */
 }
 
+/* RESPONSIVIDADE REAL PARA CELULAR */
 @media (max-width: 600px) {
-    .card {
-        width: 95%;
-        height: auto;
+
+    body {
         padding: 10px;
+    }
+
+    h1.title {
+        font-size: 26px;
+    }
+
+    .top-bar {
         flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+
+    #search {
+        width: 100%;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    select, button {
+        width: 100%;
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    /* --- CARDS --- */
+    .card {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border-radius: 12px;
+        gap: 12px;
     }
 
     .card-top {
-        flex-direction: row;
+        display: flex;
+        gap: 10px;
         align-items: center;
     }
 
+    /* ÍCONE MUITO GRANDE — CORRIGIDO */
     .card-icon {
-        width: 50px;
-        height: 50px;
+        width: 90px;
+        height: 90px;
+        border-radius: 10px;
+    }
+
+    .card-content {
+        gap: 6px;
     }
 
     .card-content h3 {
-        font-size: 16px;
+        font-size: 18px;
     }
 
     .card-content p {
-        font-size: 13px;
-        max-height: 40px;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-size: 14px;
+        max-height: none;
+    }
+
+    .card-content button {
+        font-size: 14px;
+        padding: 6px 10px;
     }
 
     .more-info {
-        width: 25px;
-        height: 25px;
-        font-size: 14px;
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
     }
 
     .card-screenshot {
         width: 100%;
-        max-height: 140px;
-        object-fit: cover;
         border-radius: 8px;
+        max-height: 200px;
+        object-fit: cover;
+    }
+
+    /* POPUP */
+    .popup-box {
+        width: 90%;
+        height: 85vh;
+    }
+
+    .popup-top {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .pack-icon {
+        width: 120px;
+        height: 120px;
+    }
+
+    .popup-info p {
+        font-size: 14px;
     }
 }
 
