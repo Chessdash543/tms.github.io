@@ -12,5 +12,20 @@
     "version": "v4.0.7",
     "icon": "/uploads/chessdash.diamondtp/icon.png",
     "screenshot": "/uploads/chessdash.diamondtp/image.png"
+  },
+  {
+    "id": "danzgame.nova_ui",
+    "name": "Nova Ui",
+    "creator": "DANZGAME",
+    "resolution": [
+      "low",
+      "high",
+      "medium"
+    ],
+    "download": "/uploads/danzgame.nova_ui/danzgame.nova_ui.zip",
+    "description": "NOVA UI is a name derived from the word innovation, which means developing ideas in a field.",
+    "version": "v1.6.0",
+    "icon": "/uploads/danzgame.nova_ui/icon.png",
+    "screenshot": "/uploads/danzgame.nova_ui/image.png"
   }
 ]
