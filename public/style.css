@@ -86,7 +86,7 @@ input::placeholder {
     color: #aaa;
 }
 
-input:hover, select:hover, button:hover {
+select:hover, button:hover {
     transform: scale(1.05);
     cursor: pointer;
 }
