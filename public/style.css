@@ -128,10 +128,12 @@ select:hover, button:hover {
 .card-content {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    flex: 1;
     gap: 10px;
-    font-size: 20px;
+    background-color: #1a1a1a; /* fundo do subbloco */
+    padding: 15px;            /* espaço interno */
+    border-radius: 10px;      /* bordas arredondadas */
+    border: 2px solid #ffffff;   /* borda do subbloco */
+    box-shadow: 0 0 10px #ffffff88; /* leve brilho */
 }
 
 .card-content .download-btn {
@@ -147,7 +149,9 @@ select:hover, button:hover {
     align-items: center;         /* centraliza vertical */
     width: fit-content;          /* mantém o tamanho certinho */
 }
-
+.card-content p {
+    font-size: 20px;
+}
 .card-content .download-btn:hover {
     background-color: #333;
     transform: scale(1.05);
@@ -155,13 +159,13 @@ select:hover, button:hover {
 
 .card-top .more-info {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 10px;     /* distancia do topo */
+    right: 10px;   /* distancia da direita */
     width: 30px;
     height: 30px;
     border-radius: 50%;
     background-color: #646464;
-    border: none;
+    border: 2px solid #fff; /* borda opcional */
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -171,6 +175,7 @@ select:hover, button:hover {
     color: #ffffff;
     z-index: 10;
 }
+
 
 .card-top .more-info:hover {
     background-color: #333;
@@ -262,7 +267,7 @@ select:hover, button:hover {
 }
 
 .popup-box .popup-image {
-    width: 85%;
+    width: 95%;
     height: auto;
     display: block;
     margin: 10px auto;
