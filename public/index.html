@@ -23,6 +23,7 @@
             <option value="medium">Medium</option>
             <option value="low">Low</option>
         </select>
+        <button id="addPackBtn" class="add-pack-btn">Add my texture pack</button>
     </div>
 
     <div id="cards-container"></div>
@@ -30,6 +31,20 @@
 
     <div id="popup" class="popup-bg">
         <div class="popup-box"></div>
+    </div>
+
+    <div id="invite-popup" class="popup-bg" aria-hidden="true">
+        <div class="popup-box invite-box">
+            <div class="popup-top">
+                <img src="/img/icon.png" alt="icon" class="pack-icon">
+                <div class="popup-info">
+                    <h2>Join our Discord</h2>
+                    <p>Want to add your texture pack? Join our Discord server to submit and get help from the community.</p>
+                    <p><a id="discordInviteLink" href="https://discord.gg/YMGPn26WMN" target="_blank" rel="noopener">Join the Discord</a></p>
+                    <button class="close-invite-btn">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -51,6 +66,13 @@
         const filterSelect = document.getElementById("filterResolution");
         const popup = document.getElementById("popup");
         const popupBox = popup.querySelector(".popup-box");
+        const addPackBtn = document.getElementById("addPackBtn");
+        const invitePopup = document.getElementById("invite-popup");
+        const inviteBox = invitePopup.querySelector(".invite-box");
+        const inviteCloseBtn = invitePopup.querySelector('.close-invite-btn');
+        const discordInviteLink = document.getElementById('discordInviteLink');
+
+        const DISCORD_INVITE = 'https://discord.gg/YMGPn26WMN';
 
         function renderCards(list) {
             cardsContainer.innerHTML = "";
@@ -163,9 +185,48 @@
                 }
             });
         }
-
-
         popup.addEventListener("click", e => { if(e.target === popup) popup.style.display = "none"; });
+
+        if (addPackBtn) {
+            addPackBtn.addEventListener('click', () => {
+                discordInviteLink.href = DISCORD_INVITE;
+                invitePopup.style.display = 'flex';
+                document.body.classList.add('no-scroll');
+            });
+        }
+
+        if (inviteCloseBtn) {
+            inviteCloseBtn.addEventListener('click', () => {
+                invitePopup.style.display = 'none';
+                document.body.classList.remove('no-scroll');
+            });
+        }
+
+        invitePopup.addEventListener('click', e => {
+            if (e.target === invitePopup) {
+                invitePopup.style.display = 'none';
+                document.body.classList.remove('no-scroll');
+            }
+        });
     </script>
+
+    <footer class="site-footer" role="contentinfo">
+        <div class="footer-inner">
+            <a class="social-btn youtube" href="https://www.youtube.com/@ChessDash543" target="_blank" rel="noopener" aria-label="YouTube">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="#FF0000" d="M23.5 6.2a3.0 3.0 0 0 0-2.1-2.1C19.6 3.5 12 3.5 12 3.5s-7.6 0-9.4.6A3.0 3.0 0 0 0 .5 6.2 29.3 29.3 0 0 0 0 12a29.3 29.3 0 0 0 .5 5.8 3.0 3.0 0 0 0 2.1 2.1c1.8.6 9.4.6 9.4.6s7.6 0 9.4-.6a3.0 3.0 0 0 0 2.1-2.1A29.3 29.3 0 0 0 24 12a29.3 29.3 0 0 0-.5-5.8z"></path><path fill="#fff" d="M9.8 15.5V8.5l6.2 3.5-6.2 3.5z"></path></svg>
+                <span class="social-label">YouTube</span>
+            </a>
+
+            <a class="social-btn discord" href="https://discord.gg/YMGPn26WMN" target="_blank" rel="noopener" aria-label="Discord">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="#7289DA" d="M20.317 4.369a19.791 19.791 0 0 0-4.885-1.515.07.07 0 0 0-.075.037c-.211.375-.445.864-.608 1.249-1.84-.276-3.68-.276-5.486 0-.163-.39-.405-.88-.617-1.255a.07.07 0 0 0-.076-.036A19.736 19.736 0 0 0 3.678 4.37a.064.064 0 0 0-.03.024C.533 9.045-.319 13.46.066 17.8a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 6.058 3.08.07.07 0 0 0 .078-.027c.468-.637.885-1.31 1.24-2.01a.07.07 0 0 0-.038-.099 13.35 13.35 0 0 1-1.9-.9.07.07 0 0 1-.007-.12c.127-.096.254-.197.375-.305a.07.07 0 0 1 .073-.01c3.97 1.79 8.27 1.79 12.11 0a.07.07 0 0 1 .076.01c.12.108.247.209.374.305a.07.07 0 0 1-.006.12c-.646.4-1.317.754-1.9.899a.07.07 0 0 0-.038.1c.36.7.777 1.374 1.245 2.01a.07.07 0 0 0 .078.026 19.907 19.907 0 0 0 6.058-3.08.082.082 0 0 0 .031-.056c.5-7.168-2.9-11.561-3.93-12.467a.062.062 0 0 0-.03-.023z"></path><path fill="#fff" d="M8.02 13.577c-1.18 0-2.14-1.085-2.14-2.423 0-1.337.955-2.423 2.14-2.423 1.2 0 2.164 1.086 2.14 2.423 0 1.338-.955 2.423-2.14 2.423zm7.96 0c-1.18 0-2.14-1.085-2.14-2.423 0-1.337.955-2.423 2.14-2.423 1.2 0 2.165 1.086 2.14 2.423 0 1.338-.94 2.423-2.14 2.423z"></path></svg>
+                <span class="social-label">Discord</span>
+            </a>
+
+            <a class="social-btn github" href="https://github.com/Chessdash543/texture-server" target="_blank" rel="noopener" aria-label="GitHub">
+                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="#fff" d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.1 3.29 9.42 7.86 10.95.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.52-1.33-1.27-1.69-1.27-1.69-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.2 1.77 1.2 1.02 1.75 2.68 1.24 3.33.95.1-.74.4-1.24.73-1.53-2.55-.29-5.23-1.28-5.23-5.69 0-1.26.45-2.29 1.2-3.1-.12-.3-.52-1.51.11-3.15 0 0 .98-.31 3.2 1.18a11.05 11.05 0 0 1 2.92-.39c.99 0 1.99.13 2.92.39 2.22-1.49 3.2-1.18 3.2-1.18.63 1.64.23 2.85.11 3.15.75.81 1.2 1.84 1.2 3.1 0 4.42-2.69 5.39-5.25 5.67.41.36.77 1.07.77 2.15 0 1.55-.01 2.8-.01 3.18 0 .31.21.68.8.56A10.52 10.52 0 0 0 23.5 12c0-6.28-5.23-11.5-11.5-11.5z"/></svg>
+                <span class="social-label">GitHub</span>
+            </a>
+        </div>
+    </footer>
 </body>
 </html>

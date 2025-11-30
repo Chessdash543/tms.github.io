@@ -235,7 +235,6 @@ select:hover, button:hover {
     width: 100%;
     height: 100%;
     background-color: rgba(0,0,0,0.7);
-    display: flex;
     align-items: center;
     justify-content: center;
     z-index: 999;
@@ -248,7 +247,6 @@ select:hover, button:hover {
     border-radius: 15px;
     border: 2px solid #ffffff;
     width: 800px;
-    height: 700px;
     max-height: 90vh;
     text-align: center;
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
@@ -574,4 +572,94 @@ select:hover, button:hover {
     .card-icon { width: 80px; height: 80px; }
     .card-content p { font-size: 15px; }
     .card-content h3 { font-size: 18px; }
+}
+
+.add-pack-btn {
+    background-color: #2b7cff;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.add-pack-btn:hover {
+    background-color: #1a62d6;
+}
+
+.invite-box h2 {
+    margin-top: 0;
+    font-size: 24px;
+}
+
+.invite-box p {
+    margin: 5px 0;
+    font-size: 20px;
+    color: #ddd;
+}
+
+.invite-box p { font-size: 16px; color: #ddd; }
+
+@media (max-width: 600px) {
+    .invite-box { padding: 18px; }
+    .invite-box h2 { font-size: 20px; }
+}
+
+.site-footer {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    display: flex;
+    justify-content: center;
+    pointer-events: auto;
+    z-index: 500; /* below popups (999) */
+}
+
+.footer-inner {
+    background: rgba(20,20,20,0.66);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,0.06);
+    padding: 8px 12px;
+    border-radius: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.social-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    text-decoration: none;
+    background: transparent;
+    border-radius: 8px;
+    padding: 8px 10px;
+    transition: transform .12s ease, background-color .12s ease;
+    font-weight: 600;
+}
+
+.social-btn svg { display: block; }
+.social-label { display: inline-block; }
+
+.social-btn:hover { transform: translateY(-3px); }
+
+.social-btn.youtube { background: rgba(255,0,0,0.12); }
+.social-btn.discord { background: rgba(114,137,218,0.08); }
+.social-btn.github { background: rgba(255,255,255,0.04); }
+
+@media (max-width: 540px) {
+    .site-footer { left: 8px; right: 8px; bottom: 8px; }
+    .social-label { display: none; } /* hide text labels on small screens */
+    .social-btn { padding: 8px; }
+}
+
+.pack-icon {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    border-radius: 10px;
+    filter: drop-shadow(0 0 12px #ffffffc5);
 }
