@@ -229,8 +229,8 @@ select:hover, button:hover {
     padding: 30px;
     border-radius: 15px;
     border: 2px solid #ffffff;
-    width: 700px;
-    height: 600px;
+    width: 800px;
+    height: 700px;
     max-height: 90vh;
     text-align: center;
     box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
@@ -284,14 +284,16 @@ select:hover, button:hover {
 }
 
 .popup-box .popup-image {
-    width: 95%;
+    width: 100%;
     height: auto;
     display: block;
-    margin: 10px auto;
+    top: 30px;
+    margin: 30px auto;
     border-radius: 10px;
     cursor: pointer;
     transition: transform 0.3s ease;
-    top: 20px;
+    border: 3px solid #ffffff;
+    box-shadow: 0 0 20px #ffffff;
 }
 
 .popup-top {
@@ -310,10 +312,11 @@ select:hover, button:hover {
     background-color: #1a1a1a; /* fundo do subbloco */
     padding: 15px;            /* espaço interno */
     border-radius: 10px; 
+    box-shadow: 0 0 20px #ffffff;
 }
 
 .popup-info p {
-    font-size: 20px;
+    font-size: 25px;
 }
 
 .popup-info h2 {
@@ -492,4 +495,9 @@ select:hover, button:hover {
 #pagination .active-page {
     background: #f39c12;
     font-weight: bold;
+}
+
+.no-scroll {
+    overflow: hidden;
+    height: 100vh;
 }

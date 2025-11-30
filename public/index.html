@@ -146,9 +146,23 @@
                 </div>
                 <img src="${pack.screenshot}" alt="screenshot" class="popup-image">
             `;
+
             popup.style.display = "flex";
-            popup.querySelector("#closePopup").addEventListener("click", () => { popup.style.display = "none"; });
+            document.body.classList.add("no-scroll");
+            const closeBtn = document.getElementById("closePopup");
+            closeBtn.addEventListener("click", () => {
+                popup.style.display = "none";
+                document.body.classList.remove("no-scroll");
+            });
+
+            popup.addEventListener("click", e => {
+                if (e.target === popup) {
+                    popup.style.display = "none";
+                    document.body.classList.remove("no-scroll");
+                }
+            });
         }
+
 
         popup.addEventListener("click", e => { if(e.target === popup) popup.style.display = "none"; });
     </script>
