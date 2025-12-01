@@ -26,6 +26,14 @@
     h2{margin-bottom:10px;color:#fff;}
     p{color:#bbb;margin-bottom:16px;}
     .msg {margin-top:12px;color:#ffffff;}
+    select {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -73,13 +81,13 @@
         </div>
 
         <div class="form-full">
-          <label for="u_screenshotFile">Screenshot (opcional)</label>
+          <label for="u_screenshotFile">Screenshot (optional)</label>
           <input type="file" id="u_screenshotFile" name="screenshot" accept="image/*">
           <span class="hint">will send to <code>/uploads/{packId}/</code></span>
         </div>
       </div>
 
-      <button type="submit">Salve Changes</button>
+      <button type="submit">Save Changes</button>
     </form>
 
     <div id="msg" style="margin-top:10px; color:#fff; opacity: 0.5;"></div>
