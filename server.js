@@ -4,6 +4,7 @@ const fs = require("fs");
 const path = require("path");
 const multer = require("multer");
 const jwt = require("jsonwebtoken");
+const archiver = require("archiver");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,10 +24,17 @@ app.use(express.static("public"));
 // Lê senha de autenticação
 let uploadPassword = "seu-senha-segura-aqui";
 try {
-    const pwdData = JSON.parse(fs.readFileSync(passwordPath));
-    uploadPassword = pwdData.uploadPassword || uploadPassword;
+       if (fs.existsSync(passwordPath)) {
+          const pwdData = JSON.parse(fs.readFileSync(passwordPath));
+          uploadPassword = process.env.UPLOAD_PASSWORD || pwdData.uploadPassword || uploadPassword;
+       } else {
+          console.warn("Aviso: password.json não encontrado, usando UPLOAD_PASSWORD (se definido) ou padrão.");
+       }
 } catch (err) {
-    console.warn("Aviso: password.json não encontrado");
+       console.warn("Aviso ao ler password.json:", err.message || err);
+}
+if (!process.env.JWT_SECRET) {
+    console.warn("Aviso: JWT_SECRET não definido. Usando valor padrão. Defina a variável de ambiente JWT_SECRET em produção.");
 }
 
 // Middleware de autenticação
@@ -178,6 +186,58 @@ app.post("/api/packs", verifyToken, (req, res) => {
     }
 });
 
+// Atualizar pack existente
+app.put('/api/packs/:id', verifyToken, (req, res) => {
+    try {
+        const packId = req.params.id;
+        const updates = req.body;
+
+        let packs = JSON.parse(fs.readFileSync(packsFilePath));
+        const idx = packs.findIndex(p => p.id === packId);
+        if (idx === -1) return res.status(404).json({ error: 'Pack não encontrado' });
+
+        // Atualiza apenas campos permitidos
+        const allowed = ['name', 'creator', 'description', 'version', 'resolution', 'download', 'icon', 'screenshot'];
+        allowed.forEach(field => {
+            if (updates[field] !== undefined) packs[idx][field] = updates[field];
+        });
+
+        fs.writeFileSync(packsFilePath, JSON.stringify(packs, null, 2));
+        res.json({ success: true, pack: packs[idx] });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao atualizar pack' });
+    }
+});
+
+// Remover pack
+app.delete('/api/packs/:id', verifyToken, (req, res) => {
+    try {
+        const packId = req.params.id;
+        let packs = JSON.parse(fs.readFileSync(packsFilePath));
+        const idx = packs.findIndex(p => p.id === packId);
+        if (idx === -1) return res.status(404).json({ error: 'Pack não encontrado' });
+
+        const removed = packs.splice(idx, 1)[0];
+        fs.writeFileSync(packsFilePath, JSON.stringify(packs, null, 2));
+
+        // tenta remover pasta de uploads (se existir)
+        const packDir = path.join(__dirname, 'public', 'uploads', packId);
+        try {
+            if (fs.existsSync(packDir)) {
+                fs.rmSync(packDir, { recursive: true, force: true });
+            }
+        } catch (rmErr) {
+            console.warn('Não foi possível remover pasta de uploads:', rmErr.message || rmErr);
+        }
+
+        res.json({ success: true, removed });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Erro ao remover pack' });
+    }
+});
+
 // Upload de arquivos (ZIP, ícone, screenshot)
 app.post("/api/upload", verifyToken, upload.fields([
     { name: 'zipFile', maxCount: 1 },
@@ -200,6 +260,146 @@ app.post("/api/upload", verifyToken, upload.fields([
         console.error(err);
         res.status(500).json({ error: "Erro ao fazer upload" });
     }
+});
+
+// GET /api/backup - download backup compactado (data.json + uploads)
+app.get('/api/backup', verifyToken, (req, res) => {
+    try {
+        const uploadsDir = path.join(__dirname, 'public', 'uploads');
+        const dataFile = packsFilePath;
+
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', `attachment; filename=backup-${Date.now()}.zip`);
+
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        archive.on('error', (err) => {
+            console.error('Archive error:', err);
+            res.status(500).json({ error: 'Erro ao criar backup' });
+        });
+
+        archive.pipe(res);
+
+        // Adiciona data.json
+        if (fs.existsSync(dataFile)) {
+            archive.file(dataFile, { name: 'data.json' });
+        }
+
+        // Adiciona pasta uploads inteira
+        if (fs.existsSync(uploadsDir)) {
+            archive.directory(uploadsDir, 'uploads');
+        }
+
+        archive.finalize();
+    } catch (err) {
+        console.error('Backup error:', err);
+        res.status(500).json({ error: 'Erro ao fazer backup' });
+    }
+});
+
+// POST /api/backup/restore - restaurar backup de arquivo .zip
+app.post('/api/backup/restore', verifyToken, (req, res) => {
+    try {
+        // Criar upload temporário para o backup
+        const tempUpload = multer({
+            storage: multer.memoryStorage(),
+            limits: { fileSize: 500 * 1024 * 1024 } // 500MB
+        });
+
+        tempUpload.single('backup')(req, res, async (err) => {
+            if (err || !req.file) {
+                return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+            }
+
+            try {
+                const AdmZip = require('adm-zip');
+                const zip = new AdmZip(req.file.buffer);
+
+                // Backup do estado atual antes de restaurar
+                const backupDir = path.join(__dirname, 'data', '.backup');
+                if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+
+                const timestamp = Date.now();
+                if (fs.existsSync(packsFilePath)) {
+                    fs.copyFileSync(packsFilePath, path.join(backupDir, `data-${timestamp}.json`));
+                }
+
+                // Cria diretório temporário para extrair
+                const tempDir = path.join(__dirname, '.restore-temp');
+                if (fs.existsSync(tempDir)) {
+                    fs.rmSync(tempDir, { recursive: true, force: true });
+                }
+                fs.mkdirSync(tempDir, { recursive: true });
+
+                // Extrai tudo para temp
+                zip.extractAllTo(tempDir, true);
+
+                // Restaura data.json
+                const tempDataFile = path.join(tempDir, 'data.json');
+                if (fs.existsSync(tempDataFile)) {
+                    const dataContent = fs.readFileSync(tempDataFile, 'utf8');
+                    JSON.parse(dataContent); // valida JSON
+                    fs.writeFileSync(packsFilePath, dataContent);
+                }
+
+                // Restaura uploads
+                const tempUploadsDir = path.join(tempDir, 'uploads');
+                const uploadsDir = path.join(__dirname, 'public', 'uploads');
+
+                if (fs.existsSync(uploadsDir)) {
+                    fs.rmSync(uploadsDir, { recursive: true, force: true });
+                }
+
+                if (fs.existsSync(tempUploadsDir)) {
+                    // Copia recursivamente
+                    const copyDir = (src, dest) => {
+                        if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+                        fs.readdirSync(src).forEach(file => {
+                            const srcFile = path.join(src, file);
+                            const destFile = path.join(dest, file);
+                            if (fs.statSync(srcFile).isDirectory()) {
+                                copyDir(srcFile, destFile);
+                            } else {
+                                fs.copyFileSync(srcFile, destFile);
+                            }
+                        });
+                    };
+                    copyDir(tempUploadsDir, uploadsDir);
+                }
+
+                // Remove temp
+                fs.rmSync(tempDir, { recursive: true, force: true });
+
+                res.json({ 
+                    success: true, 
+                    message: 'Backup restaurado com sucesso',
+                    backupSavedAt: path.join(backupDir, `data-${timestamp}.json`)
+                });
+            } catch (parseErr) {
+                console.error('Restore error:', parseErr);
+                res.status(400).json({ error: 'Arquivo de backup inválido: ' + parseErr.message });
+            }
+        });
+    } catch (err) {
+        console.error('Restore endpoint error:', err);
+        res.status(500).json({ error: 'Erro ao restaurar backup' });
+    }
+});
+
+// Retorna JSON para rotas /api não encontradas (evita HTML)
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api')) {
+        return res.status(404).json({ error: 'Endpoint API não encontrado' });
+    }
+    next();
+});
+
+// Handler global de erros — retorna JSON para rotas /api
+app.use((err, req, res, next) => {
+    console.error('Unhandled error:', err && (err.stack || err));
+    if (req.path && req.path.startsWith && req.path.startsWith('/api')) {
+        return res.status(500).json({ error: 'Erro interno no servidor' });
+    }
+    res.status(500).send('Erro interno no servidor');
 });
 
 app.listen(PORT, () => {

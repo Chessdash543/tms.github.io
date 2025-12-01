@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Backup - TMS</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="/img/icon.png" type="image/x-icon">
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-image: url('/img/bg.png');
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-attachment: fixed;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        color: #fff;
+    }
+
+    .box {
+        background: rgba(17, 17, 17, 0.95);
+        padding: 28px;
+        border-radius: 12px;
+        max-width: 700px;
+        width: 100%;
+        box-sizing: border-box;
+        border: 2px solid #fff;
+        box-shadow: 0 0 20px rgb(255, 255, 255);
+    }
+
+    h1 {
+        text-align: center;
+        margin-bottom: 12px;
+        color: #fff;
+    }
+
+    .meta {
+        color: #bbb;
+        font-size: 13px;
+        margin-bottom: 24px;
+        text-align: center;
+    }
+
+    .section {
+        background: #111;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #333;
+    }
+
+    .section h2 {
+        color: #fff;
+        font-size: 18px;
+        margin-bottom: 12px;
+        margin-top: 0;
+    }
+
+    .section p {
+        color: #bbb;
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    button {
+        background: #2b7cff;
+        color: #fff;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        transition: transform 0.15s ease;
+    }
+
+    button:hover {
+        transform: translateY(-2px);
+    }
+
+    .btn-danger {
+        background: #d9534f;
+    }
+
+    .message {
+        margin-top: 12px;
+        padding: 10px;
+        border-radius: 8px;
+        text-align: center;
+        display: none;
+    }
+
+    .message.success {
+        background: #163b12;
+        color: #b9ff9a;
+        border: 1px solid #7cff00;
+    }
+
+    .message.error {
+        background: #3b1616;
+        color: #ffb3b3;
+        border: 1px solid #ff7070;
+    }
+
+    input[type="file"] {
+        padding: 8px;
+        background: #1a1a1a;
+        border: 1px solid #333;
+        color: #fff;
+        border-radius: 6px;
+        width: 100%;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+    }
+
+    .top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .logout-btn {
+        background: #8b0000;
+    }
+
+    @media (max-width: 700px) {
+        .box {
+            padding: 18px;
+        }
+        button {
+            width: 100%;
+            margin-right: 0;
+        }
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="top">
+      <div>
+        <h1>Backup & Restore</h1>
+        <div class="meta">Manage backups of your texture packs.</div>
+      </div>
+      <div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Download Backup</h2>
+      <p>Download a complete backup with all packs, icons, and screenshots.</p>
+      <button onclick="downloadBackup()">Download Backup</button>
+      <div id="downloadMsg" class="message"></div>
+    </div>
+
+    <div class="section">
+      <h2>Restore a Backup</h2>
+      <p>Send a backup file (.zip) to restore all data and files.</p>
+      <input type="file" id="backupFile" accept=".zip">
+      <button onclick="restoreBackup()" class="btn-danger">Restore Backup</button>
+      <div id="restoreMsg" class="message"></div>
+    </div>
+
+    <div>
+      <button onclick="window.location.href='/admin.html'" style="width:100%; margin-top:20px;">Return to Admin Panel</button>
+    </div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('adminToken');
+    const expiry = new Date(localStorage.getItem('tokenExpiry'));
+
+    if (!token || expiry < new Date()) {
+      window.location.href = '/login.html';
+    }
+
+    async function downloadBackup() {
+      const msgEl = document.getElementById('downloadMsg');
+      msgEl.style.display = 'block';
+      msgEl.className = 'message';
+      msgEl.textContent = 'Making Backup... Please wait.';
+
+      try {
+        const response = await fetch('/api/backup', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error || 'Error to create backup');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `backup-${new Date().toISOString().split('T')[0]}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        msgEl.className = 'message success';
+        msgEl.textContent = '✓ Backup ready! Download should start shortly.';
+      } catch (err) {
+        msgEl.className = 'message error';
+        msgEl.textContent = '✗ Error: ' + err.message;
+      }
+    }
+
+    async function restoreBackup() {
+      const fileInput = document.getElementById('backupFile');
+      const msgEl = document.getElementById('restoreMsg');
+
+      if (!fileInput.files[0]) {
+        msgEl.style.display = 'block';
+        msgEl.className = 'message error';
+        msgEl.textContent = '✗ Select a backup file to restore.';
+        return;
+      }
+
+      msgEl.style.display = 'block';
+      msgEl.className = 'message';
+      msgEl.textContent = 'Restoring Backup... Please wait.';
+
+      const formData = new FormData();
+      formData.append('backup', fileInput.files[0]);
+
+      try {
+        const response = await fetch('/api/backup/restore', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Error to restore backup');
+        }
+
+        msgEl.className = 'message success';
+        msgEl.textContent = '✓ Backup restored successfully! Reloading...';
+        fileInput.value = '';
+        setTimeout(() => window.location.href = '/admin.html', 2000);
+      } catch (err) {
+        msgEl.className = 'message error';
+        msgEl.textContent = '✗ Erro: ' + err.message;
+      }
+    }
+
+    function logout() {
+      if (confirm('You sure you want to logout?')) {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('tokenExpiry');
+        window.location.href = '/login.html';
+      }
+    }
+  </script>
+</body>
+</html>

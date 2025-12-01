@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Adicionar Texture Pack</title>
+    <link rel="icon" href="/img/icon.png" type="image/x-icon">
+    <title>Add Texture Pack - TMS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -17,163 +18,78 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            color: #fff;
         }
         .container {
-            background: #111;
+            background: rgba(17,17,17,0.95);
             border: 2px solid #fff;
             border-radius: 15px;
             padding: 30px;
             max-width: 600px;
             width: 100%;
-            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgb(255, 255, 255);
         }
         h1 {
             color: #fff;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             text-align: center;
+            font-size: 24px;
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            color: #ddd;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, textarea, select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #666;
-            border-radius: 8px;
-            background: #1a1a1a;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-        }
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: #00aaff;
-            box-shadow: 0 0 8px #00aaff;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-        .required {
-            color: #ff0000;
-        }
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 25px;
-        }
-        button {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .btn-submit {
-            background: #2b7cff;
-            color: white;
-        }
-        .btn-submit:hover {
-            background: #1a62d6;
-            transform: scale(1.05);
-        }
-        .btn-cancel {
-            background: #666;
-            color: white;
-        }
-        .btn-cancel:hover {
-            background: #555;
-            transform: scale(1.05);
-        }
-        .btn-logout {
-            background: #8b0000;
-            color: white;
-        }
-        .btn-logout:hover {
-            background: #a00000;
-            transform: scale(1.05);
-        }
-        .message {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            display: none;
-        }
-        .message.success {
-            background: #2d5016;
-            color: #7cff00;
-            border: 1px solid #7cff00;
-        }
-        .message.error {
-            background: #5c1616;
-            color: #ff7070;
-            border: 1px solid #ff7070;
-        }
-        .resolution-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .resolution-group label {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            width: auto;
-        }
-        .resolution-group input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-        }
-        small {
-            color: #888;
-            font-size: 12px;
-        }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; color: #ddd; margin-bottom: 6px; font-weight: bold; }
+        input, textarea, select { width: 100%; padding: 10px; border: 2px solid #666; border-radius: 8px; background: #1a1a1a; color: #fff; font-size: 14px; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #00aaff; box-shadow: 0 0 8px #00aaff; }
+        textarea { resize: vertical; min-height: 80px; }
+        .required { color: #ff4d4d; }
+        .button-group { display:flex; gap:10px; margin-top:20px; }
+        button { flex:1; padding:12px; border:none; border-radius:8px; font-size:16px; font-weight:700; cursor:pointer; transition: transform 0.15s ease; }
+        .btn-submit { background:#2b7cff; color:#fff; }
+        .btn-submit:hover { transform:translateY(-2px); }
+        .btn-cancel { background:#666; color:#fff; }
+        .btn-cancel:hover { transform:translateY(-2px); }
+        .btn-logout { background:#8b0000; color:#fff; }
+        .btn-logout:hover { transform:translateY(-2px); }
+        .message { margin-top:12px; padding:10px; border-radius:8px; text-align:center; display:none; }
+        .message.success { background:#163b12; color:#b9ff9a; border:1px solid #7cff00; }
+        .message.error { background:#3b1616; color:#ffb3b3; border:1px solid #ff7070; }
+        .resolution-group { display:flex; gap:10px; flex-wrap:wrap; }
+        .resolution-group label { display:flex; align-items:center; gap:8px; font-weight:normal; }
+        small { color:#aaa; font-size:12px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Adicionar Texture Pack</h1>
+        <h1>Add Texture Pack</h1>
         <form id="addPackForm">
             <div class="form-group">
-                <label for="id">ID (único) <span class="required">*</span>
+                <label for="id">ID <span class="required">*</span>
                     <small>Ex: autor.nomepack</small>
                 </label>
                 <input type="text" id="id" name="id" required placeholder="ex: chessdash.diamondtp">
             </div>
 
             <div class="form-group">
-                <label for="name">Nome do Pack <span class="required">*</span></label>
+                <label for="name">Texture Pack Name <span class="required">*</span></label>
                 <input type="text" id="name" name="name" required placeholder="Ex: Diamond TP">
             </div>
 
             <div class="form-group">
-                <label for="creator">Criador <span class="required">*</span></label>
+                <label for="creator">Creator <span class="required">*</span></label>
                 <input type="text" id="creator" name="creator" required placeholder="Ex: ChessDash543">
             </div>
 
             <div class="form-group">
-                <label for="description">Descrição</label>
-                <textarea id="description" name="description" placeholder="Descrição do seu texture pack..."></textarea>
+                <label for="description">Description </label>
+                <textarea id="description" name="description" placeholder="Description"></textarea>
             </div>
 
             <div class="form-group">
-                <label for="version">Versão</label>
+                <label for="version">Version </label>
                 <input type="text" id="version" name="version" value="v1.0.0" placeholder="Ex: v1.0.0">
             </div>
 
             <div class="form-group">
-                <label>Resoluções <small>(marque uma ou mais)</small></label>
+                <label>Resolution</label>
                 <div class="resolution-group">
                     <label>
                         <input type="checkbox" name="resolution" value="low"> Low
@@ -188,22 +104,25 @@
             </div>
 
             <div class="form-group">
-                <label for="download">URL de Download <span class="required">*</span></label>
-                <input type="url" id="download" name="download" required placeholder="Ex: /uploads/seu.pack/arquivo.zip">
+                <label for="zipFile">File .zip <span class="required">*</span></label>
+                <input type="file" id="zipFile" name="zipFile" accept=".zip" required>
+                <small style="color:#aaa; display:block; margin-top:6px;">the file is will save in <code>/uploads/{packId}/</code></small>
             </div>
 
             <div class="form-group">
-                <label for="icon">URL do Ícone</label>
-                <input type="url" id="icon" name="icon" placeholder="Ex: /uploads/seu.pack/icon.png">
+                <label for="iconFile">Icon (optional)</label>
+                <input type="file" id="iconFile" name="icon" accept="image/*">
+                <small style="color:#aaa; display:block; margin-top:6px;">will send in <code>/uploads/{packId}/</code></small>
             </div>
 
             <div class="form-group">
-                <label for="screenshot">URL da Captura de Tela</label>
-                <input type="url" id="screenshot" name="screenshot" placeholder="Ex: /uploads/seu.pack/image.png">
+                <label for="screenshotFile">Screenshort (optional)</label>
+                <input type="file" id="screenshotFile" name="screenshot" accept="image/*">
+                <small style="color:#aaa; display:block; margin-top:6px;">will send in <code>/uploads/{packId}/</code></small>
             </div>
 
             <div class="button-group">
-                <button type="submit" class="btn-submit">Adicionar Pack</button>
+                <button type="submit" class="btn-submit">Add Texture Pack</button>
                 <button type="button" class="btn-cancel" onclick="window.location.href='/'">Voltar</button>
                 <button type="button" class="btn-logout" onclick="logout()">Logout</button>
             </div>
@@ -213,13 +132,11 @@
     </div>
 
     <script>
-        // Verifica se está autenticado ao carregar a página
         window.addEventListener('load', () => {
             const token = localStorage.getItem('adminToken');
             const expiry = new Date(localStorage.getItem('tokenExpiry'));
 
             if (!token || expiry < new Date()) {
-                // Não está autenticado ou token expirou
                 window.location.href = '/login.html';
             }
         });
@@ -233,7 +150,7 @@
             if (!token) {
                 messageEl.style.display = 'block';
                 messageEl.className = 'message error';
-                messageEl.textContent = '✗ Sessão expirada. Faça login novamente.';
+                messageEl.textContent = '✗ make login again.';
                 setTimeout(() => window.location.href = '/login.html', 2000);
                 return;
             }
@@ -241,7 +158,6 @@
             messageEl.style.display = 'block';
 
             try {
-                // Coleta resoluções marcadas
                 const resolutions = Array.from(document.querySelectorAll('input[name="resolution"]:checked'))
                     .map(el => el.value);
 
@@ -251,15 +167,66 @@
                     creator: document.getElementById('creator').value.trim(),
                     description: document.getElementById('description').value.trim(),
                     version: document.getElementById('version').value.trim(),
-                    resolution: resolutions.length > 0 ? resolutions : ['medium'],
-                    download: document.getElementById('download').value.trim(),
-                    icon: document.getElementById('icon').value.trim(),
-                    screenshot: document.getElementById('screenshot').value.trim()
+                    resolution: resolutions.length > 0 ? resolutions : ['medium']
                 };
+
+                const zipFileInput = document.getElementById('zipFile');
+                const iconFileInput = document.getElementById('iconFile');
+                const screenshotFileInput = document.getElementById('screenshotFile');
+
+                try {
+                    if ((zipFileInput && zipFileInput.files && zipFileInput.files.length) ||
+                        (iconFileInput && iconFileInput.files && iconFileInput.files.length) ||
+                        (screenshotFileInput && screenshotFileInput.files && screenshotFileInput.files.length)) {
+
+                        messageEl.className = 'message';
+                        messageEl.textContent = 'Sending files...';
+
+                        const uploadFd = new FormData();
+                        uploadFd.append('packId', formData.id);
+                        if (zipFileInput && zipFileInput.files[0]) uploadFd.append('zipFile', zipFileInput.files[0]);
+                        if (iconFileInput && iconFileInput.files[0]) uploadFd.append('icon', iconFileInput.files[0]);
+                        if (screenshotFileInput && screenshotFileInput.files[0]) uploadFd.append('screenshot', screenshotFileInput.files[0]);
+
+                        const upRes = await fetch('/api/upload', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: uploadFd
+                        });
+
+                        if (!upRes.ok) {
+                            const txt = await upRes.text();
+                            throw new Error('Upload failed: ' + (txt || upRes.statusText));
+                        }
+
+                        const upContentType = upRes.headers.get('content-type') || '';
+                        if (upContentType.includes('application/json')) {
+                            const upData = await upRes.json();
+                            if (upData.success && upData.uploads) {
+                                const u = upData.uploads;
+                                if (u.zip) formData.download = u.zip;
+                                if (u.icon) formData.icon = u.icon;
+                                if (u.screenshot) formData.screenshot = u.screenshot;
+                            }
+                        } else {
+                            const txt = await upRes.text();
+                            throw new Error('Upload return strange response: ' + txt);
+                        }
+                    }
+                } catch (upErr) {
+                    messageEl.className = 'message error';
+                    messageEl.textContent = `✗ Error to upload: ${upErr.message}`;
+                    return;
+                }
+
+                messageEl.className = 'message';
+                messageEl.textContent = 'Creating texture pack...';
 
                 const response = await fetch('/api/packs', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
@@ -282,27 +249,21 @@
 
                 if (response.ok) {
                     messageEl.className = 'message success';
-                    messageEl.textContent = '✓ Texture pack adicionado com sucesso! Redirecionando...';
+                    messageEl.textContent = '✓ Texture Pack added successfully!';
                     document.getElementById('addPackForm').reset();
                     setTimeout(() => window.location.href = '/', 2000);
                 } else {
                     messageEl.className = 'message error';
-                    messageEl.textContent = `✗ Erro: ${data?.error || response.statusText || 'Erro desconhecido'}`;
+                    messageEl.textContent = `✗ Error: ${data?.error || response.statusText || 'Erro desconhecido'}`;
                 }
             } catch (error) {
                 messageEl.className = 'message error';
-                messageEl.textContent = `✗ Erro ao enviar: ${error.message}`;
+                messageEl.textContent = `✗ Error to send: ${error.message}`;
             }
         });
 
         function logout() {
-            localStorage.removeItem('adminToken');
-            localStorage.removeItem('tokenExpiry');
-            window.location.href = '/login.html';
-        }
-
-        function logout() {
-            if (confirm('Tem certeza que deseja fazer logout?')) {
+            if (confirm('You sure you want to logout?')) {
                 localStorage.removeItem('adminToken');
                 localStorage.removeItem('tokenExpiry');
                 window.location.href = '/login.html';

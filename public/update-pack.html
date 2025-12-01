@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Update Texture Pack - TMS</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="/img/icon.png" type="image/x-icon">
+  <style>
+    .box{background: rgba(17,17,17,0.95); padding:22px; border-radius:12px; width:760px; max-width:95%; margin:24px auto; box-shadow: 0 0 15px #fff; border: 2px solid #fff;}
+
+    .form-grid{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:start;}
+    .form-full{grid-column:1/-1}
+
+    form label{display:block; margin-bottom:6px; color:#e6e6e6; font-weight:600}
+    form input[type="text"], form input[type="url"], form input[type="file"], form textarea, form input{width:100%; padding:8px 10px; box-sizing:border-box; background:#1a1a1a; border:1px solid #333; color:#fff; border-radius:6px}
+    form textarea{min-height:110px; resize:vertical}
+
+    .hint{color:#bbb; display:block; margin-top:6px}
+
+    button{background:#2b7cff; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; margin-top:10px}
+
+    @media (max-width:700px){
+      .form-grid{grid-template-columns:1fr}
+    }
+    h2{margin-bottom:10px;color:#fff;}
+    p{color:#bbb;margin-bottom:16px;}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Update a Texture Pack</h2>
+    <p>Select a package by ID, edit the fields, and save.</p>
+
+    <div style="margin-bottom:12px">
+      <label for="selectPack">Select Pack</label>
+      <select id="selectPack"></select>
+    </div>
+
+    <form id="updateForm">
+      <div class="form-grid">
+        <div>
+          <label for="u_name">Name</label>
+          <input id="u_name" name="name" type="text">
+        </div>
+
+        <div>
+          <label for="u_creator">Creator</label>
+          <input id="u_creator" name="creator" type="text">
+        </div>
+
+        <div class="form-full">
+          <label for="u_description">Description</label>
+          <textarea id="u_description" name="description"></textarea>
+        </div>
+
+        <div class="form-full">
+          <label for="u_zipFile">File .zip (optional)</label>
+          <input type="file" id="u_zipFile" name="zipFile" accept=".zip">
+          <span class="hint">will send to <code>/uploads/{packId}/</code></span>
+        </div>
+
+        <div>
+          <label for="u_iconFile">Icon (optional)</label>
+          <input type="file" id="u_iconFile" name="icon" accept="image/*">
+          <span class="hint">will send to <code>/uploads/{packId}/</code></span>
+        </div>
+
+        <div class="form-full">
+          <label for="u_screenshotFile">Screenshot (opcional)</label>
+          <input type="file" id="u_screenshotFile" name="screenshot" accept="image/*">
+          <span class="hint">will send to <code>/uploads/{packId}/</code></span>
+        </div>
+      </div>
+
+      <button type="submit">Salve Changes</button>
+    </form>
+
+    <div id="msg" style="margin-top:10px"></div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('adminToken');
+    if (!token) location.href = '/login.html';
+
+    async function loadPacks(){
+      const res = await fetch('/api/packs');
+      const packs = await res.json();
+      const sel = document.getElementById('selectPack');
+      sel.innerHTML = '';
+      packs.forEach(p => {
+        const opt = document.createElement('option'); opt.value = p.id; opt.textContent = `${p.name} — ${p.id}`; sel.appendChild(opt);
+      });
+      if (packs.length) loadPack(packs[0].id);
+    }
+
+    async function loadPack(id){
+      const res = await fetch('/api/packs');
+      const packs = await res.json();
+      const pack = packs.find(p=>p.id===id);
+      if (!pack) return;
+      document.getElementById('u_name').value = pack.name || '';
+      document.getElementById('u_creator').value = pack.creator || '';
+      document.getElementById('u_description').value = pack.description || '';
+    }
+
+    document.getElementById('selectPack').addEventListener('change', (e)=> loadPack(e.target.value));
+
+    document.getElementById('updateForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const id = document.getElementById('selectPack').value;
+      const msg = document.getElementById('msg');
+
+      const payload = {
+        name: document.getElementById('u_name').value.trim(),
+        creator: document.getElementById('u_creator').value.trim(),
+        description: document.getElementById('u_description').value.trim()
+      };
+
+      const zipFile = document.getElementById('u_zipFile');
+      const iconFile = document.getElementById('u_iconFile');
+      const screenshotFile = document.getElementById('u_screenshotFile');
+
+      try {
+        if ((zipFile && zipFile.files && zipFile.files.length) || (iconFile && iconFile.files && iconFile.files.length) || (screenshotFile && screenshotFile.files && screenshotFile.files.length)) {
+          msg.textContent = 'Sending files... please wait.';
+          const fd = new FormData();
+          fd.append('packId', id);
+          if (zipFile && zipFile.files[0]) fd.append('zipFile', zipFile.files[0]);
+          if (iconFile && iconFile.files[0]) fd.append('icon', iconFile.files[0]);
+          if (screenshotFile && screenshotFile.files[0]) fd.append('screenshot', screenshotFile.files[0]);
+
+          const upRes = await fetch('/api/upload', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: fd });
+          if (!upRes.ok) {
+            const t = await upRes.text();
+            throw new Error('Upload failed: ' + (t || upRes.statusText));
+          }
+          const ct = upRes.headers.get('content-type') || '';
+          if (ct.includes('application/json')) {
+            const upData = await upRes.json();
+            if (upData.success && upData.uploads) {
+              const u = upData.uploads;
+              if (u.zip) payload.download = u.zip;
+              if (u.icon) payload.icon = u.icon;
+              if (u.screenshot) payload.screenshot = u.screenshot;
+            }
+          }
+        }
+      } catch (upErr) {
+        msg.textContent = 'Error in upload: ' + (upErr.message || upErr);
+        return;
+      }
+
+      try {
+        msg.textContent = 'saving changes... please wait.';
+        const res = await fetch(`/api/packs/${id}`, { method: 'PUT', headers: { 'Content-Type':'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(payload) });
+        const data = await (res.headers.get('content-type')||'').includes('application/json') ? await res.json() : null;
+        if (res.ok) {
+          msg.textContent = 'Updated successfully';
+          setTimeout(()=>location.href='/',1200);
+        } else {
+          msg.textContent = 'Erro: ' + (data?.error || res.statusText);
+        }
+      } catch (err) {
+        msg.textContent = 'Error to save: ' + (err.message || err);
+      }
+    });
+
+    loadPacks();
+  </script>
+</body>
+</html>

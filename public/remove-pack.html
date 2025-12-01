@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Remove Texture Pack - TMS</title>
+  <link rel="icon" href="/img/icon.png" type="image/x-icon">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .box{background: rgba(17,17,17,0.95); padding:22px; border-radius:12px; width:720px; max-width:95%; margin:20px auto; border: 2px solid #fff; box-shadow: 0 0 15px #fff;}
+
+    .form-grid{display:grid; grid-template-columns: 1fr auto; gap:12px; align-items:center}
+    .form-grid label{display:block; margin-bottom:6px; color:#e6e6e6; font-weight:600}
+    select{width:100%; padding:8px 10px; background:#1a1a1a; border:1px solid #333; color:#fff; border-radius:6px}
+    button{background:#d9534f; color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer}
+
+    @media (max-width:700px){
+      .form-grid{grid-template-columns:1fr;}
+      button{width:100%;}
+    }
+
+    h2{margin-bottom:10px;color:#fff;}
+    p{color:#bbb;margin-bottom:16px;}
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Remove Texture Pack</h2>
+    <p>Select a pack and permanently remove it (files will also be deleted if they exist).</p>
+
+    <div class="form-grid">
+      <div>
+        <label for="removeSelect">Select Texture Pack</label>
+        <select id="removeSelect"></select>
+      </div>
+      <div>
+        <button id="removeBtn">Remove Texture Pack</button>
+      </div>
+    </div>
+    <div id="msg" style="margin-top:10px"></div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem('adminToken');
+    if (!token) location.href = '/login.html';
+
+    async function load(){
+      const res = await fetch('/api/packs');
+      const packs = await res.json();
+      const sel = document.getElementById('removeSelect'); sel.innerHTML='';
+      packs.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=`${p.name} — ${p.id}`; sel.appendChild(o); });
+    }
+
+    document.getElementById('removeBtn').addEventListener('click', async ()=>{
+      const id = document.getElementById('removeSelect').value;
+      if(!id) return;
+      if(!confirm('Confirm pack removal '+id+' ?')) return;
+      const res = await fetch(`/api/packs/${id}`, { method:'DELETE', headers:{ 'Authorization':`Bearer ${token}` } });
+      const data = await res.json();
+      const msg = document.getElementById('msg');
+      if(res.ok){ msg.textContent='Successfully removed.'; setTimeout(()=>location.href='/',1200); } else { msg.textContent='Erro: '+(data.error||res.statusText); }
+    });
+
+    load();
+  </script>
+</body>
+</html>

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - Gerenciador de Texture Packs</title>
+    <title>Login Admin - TMS</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -131,12 +131,12 @@
     <div class="login-container">
         <div class="lock-icon">🔒</div>
         <h1>Admin Panel</h1>
-        <p class="subtitle">Gerenciador de Texture Packs</p>
+        <p class="subtitle">Texture Pack Manager</p>
 
         <form id="loginForm">
             <div class="form-group">
                 <label for="password">Senha</label>
-                <input type="password" id="password" name="password" placeholder="Digite a senha do admin" required autocomplete="current-password">
+                <input type="password" id="password" name="password" placeholder="Enter the admin password." required autocomplete="current-password">
             </div>
             <button type="submit">Entrar</button>
             <div id="message" class="message"></div>
@@ -157,7 +157,7 @@
 
             messageEl.style.display = 'block';
             messageEl.className = 'message loading';
-            messageEl.textContent = '⏳ Autenticando...';
+            messageEl.textContent = 'Authenticating... please wait.';
 
             try {
                 const response = await fetch('/api/login', {
@@ -170,14 +170,12 @@
 
                 if (response.ok) {
                     messageEl.className = 'message success';
-                    messageEl.textContent = '✓ Autenticado! Redirecionando...';
+                    messageEl.textContent = '✓ Authenticated! Redirecting...';
                     
-                    // Salva token no localStorage
                     localStorage.setItem('adminToken', data.token);
                     localStorage.setItem('tokenExpiry', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString());
                     
-                    // Redireciona para página de adicionar pack
-                    setTimeout(() => window.location.href = '/add-pack.html', 1000);
+                    setTimeout(() => window.location.href = '/admin.html', 1000);
                 } else {
                     messageEl.className = 'message error';
                     messageEl.textContent = `✗ ${data.error}`;
@@ -186,17 +184,15 @@
                 }
             } catch (error) {
                 messageEl.className = 'message error';
-                messageEl.textContent = `✗ Erro: ${error.message}`;
+                messageEl.textContent = `✗ Error: ${error.message}`;
             }
         });
 
-        // Se já estiver logado, redireciona
         if (localStorage.getItem('adminToken')) {
             const expiry = new Date(localStorage.getItem('tokenExpiry'));
             if (expiry > new Date()) {
-                window.location.href = '/add-pack.html';
+                window.location.href = '/admin.html';
             } else {
-                // Token expirou
                 localStorage.removeItem('adminToken');
                 localStorage.removeItem('tokenExpiry');
             }
