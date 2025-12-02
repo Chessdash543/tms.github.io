@@ -6,12 +6,35 @@ const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const archiver = require("archiver");
 const bcrypt = require('bcryptjs');
+const fs = require("fs");
+const path = require("path");
+const multer = require("multer");
+const AdmZip = require('adm-zip');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Caminhos
 const packsFilePath = path.join(__dirname, "data", "data.json");
+// Onde estão todos os ícones/screenshots/zips dos packs
+const uploadsDir = path.join(__dirname, 'public', 'uploads'); 
+// Diretório para backups de segurança do JSON
+const backupDir = path.join(__dirname, 'data', '.backup'); 
+
+// --- Configuração Temporária para RESTORE (USA DISCO) ---
+const RESTORE_TEMP_DIR = path.join(__dirname, '.restore-upload');
+if (!fs.existsSync(RESTORE_TEMP_DIR)) fs.mkdirSync(RESTORE_TEMP_DIR, { recursive: true });
+
+const restoreStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, RESTORE_TEMP_DIR),
+    filename: (req, file, cb) => cb(null, `restore-temp-${Date.now()}.zip`)
+});
+
+// Configurar upload temporário para o backup (usando DISCO, limite de 500MB)
+const tempUpload = multer({
+    storage: restoreStorage,
+    limits: { fileSize: 500 * 1024 * 1024 } 
+});
+
 const passwordPath = path.join(__dirname, "data", "password.json");
 
 // Secret para JWT (gera automaticamente se não existir)
@@ -23,6 +46,19 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static("public"));
 
 let uploadPasswordHash = "$2b$10$gBVPx3RzcG0kKEw.Zf8edu57vR7W.2X2Wt6pEph8p3Ui1/i9xIBSO";
+
+const copyDirRecursive = (src, dest) => {
+    if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
+    fs.readdirSync(src).forEach(file => {
+        const srcFile = path.join(src, file);
+        const destFile = path.join(dest, file);
+        if (fs.statSync(srcFile).isDirectory()) {
+            copyDirRecursive(srcFile, destFile);
+        } else {
+            fs.copyFileSync(srcFile, destFile);
+        }
+    });
+};
 
 try {
     if (fs.existsSync(passwordPath)) {
@@ -95,8 +131,6 @@ const verifyToken = (req, res, next) => {
     }
 };
 
-// Configurar multer
-const uploadsDir = path.join(__dirname, "public", "uploads");
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
 }
@@ -349,91 +383,86 @@ app.get('/api/backup', verifyToken, (req, res) => {
 
 // POST /api/backup/restore - restaurar backup de arquivo .zip
 app.post('/api/backup/restore', verifyToken, (req, res) => {
-    try {
-        // Criar upload temporário para o backup
-        const tempUpload = multer({
-            storage: multer.memoryStorage(),
-            limits: { fileSize: 500 * 1024 * 1024 } // 500MB
-        });
+    // 1. Usar o middleware tempUpload para salvar o ZIP no disco
+    tempUpload.single('backup')(req, res, async (err) => {
+        if (err) {
+            console.error('Erro Multer no Restore:', err);
+            return res.status(400).json({ error: 'Erro no upload: ' + (err.message || 'Nenhum arquivo enviado') });
+        }
+        if (!req.file) {
+             return res.status(400).json({ error: 'Nenhum arquivo .zip de backup selecionado.' });
+        }
+        
+        const zipFilePath = req.file.path; // O caminho do arquivo salvo no disco
+        const RESTORE_EXTRACT_DIR = path.join(__dirname, '.restore-temp-extract');
 
-        tempUpload.single('backup')(req, res, async (err) => {
-            if (err || !req.file) {
-                return res.status(400).json({ error: 'Nenhum arquivo enviado' });
+        try {
+            // 2. Backup do estado atual antes de restaurar
+            if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
+
+            const timestamp = Date.now();
+            if (fs.existsSync(packsFilePath)) {
+                fs.copyFileSync(packsFilePath, path.join(backupDir, `data-${timestamp}.json`));
             }
 
+            // 3. Extrair o arquivo ZIP
+            const zip = new AdmZip(zipFilePath);
+
+            // Criar e limpar diretório de extração temporário
+            if (fs.existsSync(RESTORE_EXTRACT_DIR)) {
+                fs.rmSync(RESTORE_EXTRACT_DIR, { recursive: true, force: true });
+            }
+            fs.mkdirSync(RESTORE_EXTRACT_DIR, { recursive: true });
+
+            // Extrai tudo para o temp
+            zip.extractAllTo(RESTORE_EXTRACT_DIR, true);
+
+            // 4. Restaura data.json
+            const tempDataFile = path.join(RESTORE_EXTRACT_DIR, 'data.json');
+            if (fs.existsSync(tempDataFile)) {
+                const dataContent = fs.readFileSync(tempDataFile, 'utf8');
+                JSON.parse(dataContent); // Valida se o JSON é válido
+                fs.writeFileSync(packsFilePath, dataContent);
+            }
+
+            // 5. Restaura uploads (Substitui a pasta inteira)
+            const tempUploadsDir = path.join(RESTORE_EXTRACT_DIR, 'uploads');
+
+            // 5a. Remove pasta uploads atual
+            if (fs.existsSync(uploadsDir)) {
+                fs.rmSync(uploadsDir, { recursive: true, force: true });
+            }
+            
+            // 5b. Copia a pasta uploads do backup para a pasta pública
+            if (fs.existsSync(tempUploadsDir)) {
+                copyDirRecursive(tempUploadsDir, uploadsDir);
+            }
+            
+            res.json({ 
+                success: true, 
+                message: 'Backup restaurado com sucesso. Recarregando...' 
+            });
+            
+        } catch (parseErr) {
+            console.error('Restore error:', parseErr);
+            res.status(400).json({ error: 'Erro ao processar o backup. Arquivo inválido ou corrompido: ' + parseErr.message });
+        } finally {
+            // 6. Limpeza FINAL: Remove todos os arquivos temporários do disco
             try {
-                const AdmZip = require('adm-zip');
-                const zip = new AdmZip(req.file.buffer);
-
-                // Backup do estado atual antes de restaurar
-                const backupDir = path.join(__dirname, 'data', '.backup');
-                if (!fs.existsSync(backupDir)) fs.mkdirSync(backupDir, { recursive: true });
-
-                const timestamp = Date.now();
-                if (fs.existsSync(packsFilePath)) {
-                    fs.copyFileSync(packsFilePath, path.join(backupDir, `data-${timestamp}.json`));
+                // Remove o arquivo ZIP temporário que foi salvo
+                if (fs.existsSync(zipFilePath)) {
+                    fs.unlinkSync(zipFilePath);
                 }
-
-                // Cria diretório temporário para extrair
-                const tempDir = path.join(__dirname, '.restore-temp');
-                if (fs.existsSync(tempDir)) {
-                    fs.rmSync(tempDir, { recursive: true, force: true });
+                // Remove a pasta de extração temporária
+                if (fs.existsSync(RESTORE_EXTRACT_DIR)) {
+                    fs.rmSync(RESTORE_EXTRACT_DIR, { recursive: true, force: true });
                 }
-                fs.mkdirSync(tempDir, { recursive: true });
-
-                // Extrai tudo para temp
-                zip.extractAllTo(tempDir, true);
-
-                // Restaura data.json
-                const tempDataFile = path.join(tempDir, 'data.json');
-                if (fs.existsSync(tempDataFile)) {
-                    const dataContent = fs.readFileSync(tempDataFile, 'utf8');
-                    JSON.parse(dataContent); // valida JSON
-                    fs.writeFileSync(packsFilePath, dataContent);
-                }
-
-                // Restaura uploads
-                const tempUploadsDir = path.join(tempDir, 'uploads');
-                const uploadsDir = path.join(__dirname, 'public', 'uploads');
-
-                if (fs.existsSync(uploadsDir)) {
-                    fs.rmSync(uploadsDir, { recursive: true, force: true });
-                }
-
-                if (fs.existsSync(tempUploadsDir)) {
-                    // Copia recursivamente
-                    const copyDir = (src, dest) => {
-                        if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
-                        fs.readdirSync(src).forEach(file => {
-                            const srcFile = path.join(src, file);
-                            const destFile = path.join(dest, file);
-                            if (fs.statSync(srcFile).isDirectory()) {
-                                copyDir(srcFile, destFile);
-                            } else {
-                                fs.copyFileSync(srcFile, destFile);
-                            }
-                        });
-                    };
-                    copyDir(tempUploadsDir, uploadsDir);
-                }
-
-                // Remove temp
-                fs.rmSync(tempDir, { recursive: true, force: true });
-
-                res.json({ 
-                    success: true, 
-                    message: 'Backup restaurado com sucesso',
-                    backupSavedAt: path.join(backupDir, `data-${timestamp}.json`)
-                });
-            } catch (parseErr) {
-                console.error('Restore error:', parseErr);
-                res.status(400).json({ error: 'Arquivo de backup inválido: ' + parseErr.message });
+            } catch (cleanupErr) {
+                console.warn('Falha ao remover arquivos temporários:', cleanupErr.message || cleanupErr);
+                // NOTA: Não retorne um erro 500 aqui, pois a restauração já foi concluída com sucesso.
             }
-        });
-    } catch (err) {
-        console.error('Restore endpoint error:', err);
-        res.status(500).json({ error: 'Erro ao restaurar backup' });
-    }
+        }
+    });
 });
 
 // Retorna JSON para rotas /api não encontradas (evita HTML)
