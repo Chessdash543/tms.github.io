@@ -1,1 +1,126 @@
-[]
+[
+  {
+    "id": "chessdash.diamondtp",
+    "name": "Diamond TP",
+    "creator": "ChessDash543",
+    "resolution": [
+      "high",
+      "medium"
+    ],
+    "download": "/uploads/chessdash.diamondtp/chessdash543.diamondtp.zip",
+    "description": "Is a Remake Of Diamond TP And the Texture Mix sequence (TDOSSZ), With a very cool RGB style, with support for +62 mods!",
+    "version": "v4.0.7",
+    "icon": "/uploads/chessdash.diamondtp/icon.png",
+    "screenshot": "/uploads/chessdash.diamondtp/image.png",
+    "downloads": 15
+  },
+  {
+    "id": "danzgame.nova_ui",
+    "name": "Nova Ui",
+    "creator": "DANZGAME",
+    "resolution": [
+      "low",
+      "high",
+      "medium"
+    ],
+    "download": "/uploads/danzgame.nova_ui/danzgame.nova_ui.zip",
+    "description": "NOVA UI is a name derived from the word innovation, which means developing ideas in a field.",
+    "version": "v1.6.0",
+    "icon": "/uploads/danzgame.nova_ui/icon.png",
+    "screenshot": "/uploads/danzgame.nova_ui/image.png",
+    "downloads": 1
+  },
+  {
+    "id": "martymcforty.cloudyceramics",
+    "name": "Cloudy Ceramics",
+    "creator": "MartyMCForty",
+    "resolution": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "download": "/uploads/martymcforty.cloudyceramics/martymcforty.cloudyceramics.zip",
+    "description": "A mix with all the icons with other people's texture packs (Supernova Texture Pack, 1000 Icon Private Mix, etc.). This texture pack also has music, fonts, sfx from mobile games (Cut the Rope, Pou, etc.)\nFor people who use the More Icons mod in order to see the existing icons that are replaced by the texture pack, do the following: Go to Geode --> More Icons --> Mod settings --> Load From Traditional Packs: Off",
+    "version": "v1.0.0",
+    "icon": "/uploads/martymcforty.cloudyceramics/icon.png",
+    "screenshot": "/uploads/martymcforty.cloudyceramics/image.png",
+    "downloads": 0
+  },
+  {
+    "id": "yoichi.onlyyoichigdtexturepack",
+    "name": "OnlyYoichi Texture Pack!",
+    "creator": "OnlyYoichi",
+    "resolution": [
+      "medium",
+      "high"
+    ],
+    "download": "/uploads/yoichi.onlyyoichigdtexturepack/yoichi.onlyyoichigdtexturepack.zip",
+    "description": "Simple but modern... That's the essence of it... Created and ported by OnlyYoichi for lovers of the basics and the modern",
+    "version": "v1.1.2",
+    "icon": "/uploads/yoichi.onlyyoichigdtexturepack/icon.png",
+    "screenshot": "/uploads/yoichi.onlyyoichigdtexturepack/image.png",
+    "downloads": 1
+  },
+  {
+    "id": "elbrift.better-df",
+    "name": "Shop Girls",
+    "creator": "OstiLightOff",
+    "resolution": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "download": "/uploads/elbrift.better-df/ShopGirl2.2 (1).zip",
+    "description": "Turn ShopKeepers into girls... What other explanation do you want?",
+    "version": "v1.5.0",
+    "icon": "/uploads/elbrift.better-df/pack-1.png",
+    "screenshot": "/uploads/elbrift.better-df/78_sin_titulo_20251201221838.png",
+    "downloads": 0
+  },
+  {
+    "id": "DANZGAME.geosu",
+    "name": "Geosu!",
+    "creator": "DANZGAME",
+    "resolution": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "download": "/uploads/DANZGAME.geosu/123.zip",
+    "description": "Geosu! is a UI Taken From The Game Reference Called Osu!, Which is a Rhythm Game",
+    "version": "v1.0.0",
+    "icon": "/uploads/DANZGAME.geosu/pack.png",
+    "screenshot": "/uploads/DANZGAME.geosu/20251022_201653.jpg",
+    "downloads": 0
+  },
+  {
+    "id": "retroadvance64.supernova",
+    "name": "Supernova",
+    "creator": "RetroAdvance64",
+    "resolution": [
+      "medium",
+      "high"
+    ],
+    "download": "/uploads/retroadvance64.supernova/1764705533609-SN2.0_v1.7-HM.zip",
+    "description": "Experience the world of Geometry Dash into a new coat of paint with a full-packed texture pack that changes everything in the style of the respective author. You'll be in a new different world. Stay solid with a new fancy UI inspired by 2000s graphics era. Over 875+ Icons ready to be unlocked throughout your journey. Jam with new music created by Gibarian. Mega Drive. and others. Delve into the secrets.. Explore the Tower, Vaults and Shops in new different shapes.",
+    "version": "v1.7.2",
+    "icon": "/uploads/retroadvance64.supernova/1764705812032-GeodeLogo2.png",
+    "screenshot": "/uploads/retroadvance64.supernova/1764705812039-Screenshot_20251202-013954.png",
+    "downloads": 0
+  },
+  {
+    "id": "maustyles.srguillestertp",
+    "name": "SrGuillester TP",
+    "creator": "MauStyles",
+    "resolution": [
+      "medium",
+      "high"
+    ],
+    "download": "/uploads/maustyles.srguillestertp/1764705780725-(High & Medium) Sr Guillester TP - Ported For GD 2.207.zip",
+    "description": "Get ready to go pro with the SrGuillester Texture Pack!!!",
+    "version": "v1.1.0",
+    "icon": "/uploads/maustyles.srguillestertp/1764705782693-mtPE3TsA.png",
+    "screenshot": "/uploads/maustyles.srguillestertp/1764705782708-78_sin_titulo_20251202015734.png",
+    "downloads": 0
+  }
+]
