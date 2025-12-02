@@ -181,6 +181,16 @@
       window.location.href = '/login.html';
     }
 
+    async function safeJson(response) {
+      const text = await response.text();
+      try {
+        return JSON.parse(text);
+      } catch {
+        return { error: text || "Erro desconhecido do servidor" };
+      }
+    }
+
+
     async function downloadBackup() {
       const msgEl = document.getElementById('downloadMsg');
       msgEl.style.display = 'block';
@@ -193,8 +203,8 @@
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || 'Error to create backup');
+          const text = await response.text();
+          throw new Error(text || "Erro ao criar backup");
         }
 
         const blob = await response.blob();
@@ -204,16 +214,17 @@
         a.download = `backup-${new Date().toISOString().split('T')[0]}.zip`;
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
         a.remove();
-
+        window.URL.revokeObjectURL(url);
+          
         msgEl.className = 'message success';
-        msgEl.textContent = '✓ Backup ready! Download should start shortly.';
+        msgEl.textContent = '✓ Backup pronto! O download deverá iniciar.';
       } catch (err) {
         msgEl.className = 'message error';
-        msgEl.textContent = '✗ Error: ' + err.message;
+        msgEl.textContent = '✗ Erro: ' + err.message;
       }
     }
+
 
     async function restoreBackup() {
       const fileInput = document.getElementById('backupFile');
@@ -222,13 +233,13 @@
       if (!fileInput.files[0]) {
         msgEl.style.display = 'block';
         msgEl.className = 'message error';
-        msgEl.textContent = '✗ Select a backup file to restore.';
+        msgEl.textContent = '✗ Selecione um arquivo .zip';
         return;
       }
 
       msgEl.style.display = 'block';
       msgEl.className = 'message';
-      msgEl.textContent = 'Restoring Backup... Please wait.';
+      msgEl.textContent = 'Restaurando backup...';
 
       const formData = new FormData();
       formData.append('backup', fileInput.files[0]);
@@ -240,21 +251,22 @@
           body: formData
         });
 
-        const data = await response.json();
+        const data = await safeJson(response);
 
         if (!response.ok) {
-          throw new Error(data.error || 'Error to restore backup');
+          throw new Error(data.error || "Erro ao restaurar backup");
         }
 
         msgEl.className = 'message success';
-        msgEl.textContent = '✓ Backup restored successfully! Reloading...';
-        fileInput.value = '';
+        msgEl.textContent = '✓ Backup restaurado! Recarregando...';
         setTimeout(() => window.location.href = '/admin.html', 2000);
+
       } catch (err) {
         msgEl.className = 'message error';
         msgEl.textContent = '✗ Erro: ' + err.message;
       }
     }
+
 
     function logout() {
       if (confirm('You sure you want to logout?')) {

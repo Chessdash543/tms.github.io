@@ -418,41 +418,6 @@ app.post('/api/backup/restore', verifyToken, (req, res) => {
     }
 });
 
-app.get("/api/size/:id", (req, res) => {
-    try {
-        const packId = req.params.id;
-        const packs = JSON.parse(fs.readFileSync(packsFilePath));
-
-        const pack = packs.find(p => p.id === packId);
-        if (!pack) {
-            return res.status(404).json({ error: "Pack não encontrado" });
-        }
-
-        if (!pack.download) {
-            return res.status(400).json({ error: "Pack não possui caminho de download" });
-        }
-
-        // Caminho real do arquivo ZIP (ex: /public/uploads/pack1/arquivo.zip)
-        const zipPath = path.join(__dirname, "public", pack.download);
-
-        if (!fs.existsSync(zipPath)) {
-            return res.status(404).json({ error: "Arquivo ZIP não encontrado no servidor" });
-        }
-
-        const stats = fs.statSync(zipPath);
-
-        res.json({
-            id: packId,
-            sizeBytes: stats.size,
-            sizeMB: (stats.size / (1024 * 1024)).toFixed(2)
-        });
-
-    } catch (err) {
-        console.error("Erro ao obter tamanho do ZIP:", err);
-        res.status(500).json({ error: "Erro interno ao medir o arquivo ZIP" });
-    }
-});
-
 // Retorna JSON para rotas /api não encontradas (evita HTML)
 app.use((req, res, next) => {
     if (req.path.startsWith('/api')) {
