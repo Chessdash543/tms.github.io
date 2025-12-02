@@ -186,7 +186,7 @@
       try {
         return JSON.parse(text);
       } catch {
-        return { error: text || "Erro desconhecido do servidor" };
+        return { error: text || "Error in the server" };
       }
     }
 
@@ -204,7 +204,7 @@
 
         if (!response.ok) {
           const text = await response.text();
-          throw new Error(text || "Erro ao criar backup");
+          throw new Error(text || "Error to create backup");
         }
 
         const blob = await response.blob();
@@ -218,10 +218,10 @@
         window.URL.revokeObjectURL(url);
           
         msgEl.className = 'message success';
-        msgEl.textContent = '✓ Backup pronto! O download deverá iniciar.';
+        msgEl.textContent = '✓ Backup created successfully.';
       } catch (err) {
         msgEl.className = 'message error';
-        msgEl.textContent = '✗ Erro: ' + err.message;
+        msgEl.textContent = '✗ Error: ' + err.message;
       }
     }
 
@@ -233,13 +233,13 @@
       if (!fileInput.files[0]) {
         msgEl.style.display = 'block';
         msgEl.className = 'message error';
-        msgEl.textContent = '✗ Selecione um arquivo .zip';
+        msgEl.textContent = '✗ select the file .zip';
         return;
       }
 
       msgEl.style.display = 'block';
       msgEl.className = 'message';
-      msgEl.textContent = 'Restaurando backup...';
+      msgEl.textContent = 'restoring the backup...';
 
       const formData = new FormData();
       formData.append('backup', fileInput.files[0]);
@@ -254,11 +254,11 @@
         const data = await safeJson(response);
 
         if (!response.ok) {
-          throw new Error(data.error || "Erro ao restaurar backup");
+          throw new Error(data.error || "error to restore backup");
         }
 
         msgEl.className = 'message success';
-        msgEl.textContent = '✓ Backup restaurado! Recarregando...';
+        msgEl.textContent = '✓ Backup restored successfully. Reloading...';
         setTimeout(() => window.location.href = '/admin.html', 2000);
 
       } catch (err) {
