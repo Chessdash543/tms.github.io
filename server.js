@@ -445,23 +445,31 @@ app.post('/api/backup/restore', verifyToken, (req, res) => {
             res.status(400).json({ error: 'Erro ao processar o backup. Arquivo inválido ou corrompido: ' + parseErr.message });
         } finally {
             // 6. Limpeza FINAL: Remove todos os arquivos temporários do disco
+            // Usando assíncrono para não bloquear o loop de eventos na limpeza
             try {
+                const fsPromises = require('fs').promises;
+
                 // Remove o arquivo ZIP temporário que foi salvo
                 if (fs.existsSync(zipFilePath)) {
-                    fs.unlinkSync(zipFilePath);
+                    await fsPromises.unlink(zipFilePath);
+                    console.log(`[CLEANUP] Arquivo ZIP temporário removido: ${zipFilePath}`);
                 }
+                
                 // Remove a pasta de extração temporária
                 if (fs.existsSync(RESTORE_EXTRACT_DIR)) {
-                    fs.rmSync(RESTORE_EXTRACT_DIR, { recursive: true, force: true });
+                    // Nota: fs.promises.rm é preferível para deletar diretórios recursivamente
+                    await fsPromises.rm(RESTORE_EXTRACT_DIR, { recursive: true, force: true });
+                    console.log(`[CLEANUP] Diretório de extração removido: ${RESTORE_EXTRACT_DIR}`);
                 }
+
             } catch (cleanupErr) {
-                console.warn('Falha ao remover arquivos temporários:', cleanupErr.message || cleanupErr);
-                // NOTA: Não retorne um erro 500 aqui, pois a restauração já foi concluída com sucesso.
+                // É comum falhar ao deletar se o AdmZip ainda tiver um 'handle' aberto,
+                // mas essa tentativa assíncrona é mais robusta.
+                console.warn('Falha na limpeza de arquivos temporários. Tente um restart no Render:', cleanupErr.message || cleanupErr);
             }
         }
     });
 });
-
 // Retorna JSON para rotas /api não encontradas (evita HTML)
 app.use((req, res, next) => {
     if (req.path.startsWith('/api')) {
