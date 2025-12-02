@@ -323,6 +323,10 @@ app.get('/api/backup', verifyToken, (req, res) => {
             res.end();
         });
 
+        archive.on('end', () => {
+            console.log('Archive data stream ended. Total bytes:', archive.pointer());
+        });
+
 
         archive.pipe(res);
 
