@@ -6,6 +6,8 @@ const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const archiver = require("archiver");
 const bcrypt = require('bcryptjs');
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +25,7 @@ app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static("public"));
 
 let uploadPasswordHash = "$2b$10$gBVPx3RzcG0kKEw.Zf8edu57vR7W.2X2Wt6pEph8p3Ui1/i9xIBSO";
+
 try {
     if (fs.existsSync(passwordPath)) {
         const pwdData = JSON.parse(fs.readFileSync(passwordPath));
