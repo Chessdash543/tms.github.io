@@ -6,8 +6,6 @@ const multer = require("multer");
 const jwt = require("jsonwebtoken");
 const archiver = require("archiver");
 const bcrypt = require('bcryptjs');
-const fs = require("fs");
-const path = require("path");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -416,6 +414,41 @@ app.post('/api/backup/restore', verifyToken, (req, res) => {
     } catch (err) {
         console.error('Restore endpoint error:', err);
         res.status(500).json({ error: 'Erro ao restaurar backup' });
+    }
+});
+
+app.get("/api/size/:id", (req, res) => {
+    try {
+        const packId = req.params.id;
+        const packs = JSON.parse(fs.readFileSync(packsFilePath));
+
+        const pack = packs.find(p => p.id === packId);
+        if (!pack) {
+            return res.status(404).json({ error: "Pack não encontrado" });
+        }
+
+        if (!pack.download) {
+            return res.status(400).json({ error: "Pack não possui caminho de download" });
+        }
+
+        // Caminho real do arquivo ZIP (ex: /public/uploads/pack1/arquivo.zip)
+        const zipPath = path.join(__dirname, "public", pack.download);
+
+        if (!fs.existsSync(zipPath)) {
+            return res.status(404).json({ error: "Arquivo ZIP não encontrado no servidor" });
+        }
+
+        const stats = fs.statSync(zipPath);
+
+        res.json({
+            id: packId,
+            sizeBytes: stats.size,
+            sizeMB: (stats.size / (1024 * 1024)).toFixed(2)
+        });
+
+    } catch (err) {
+        console.error("Erro ao obter tamanho do ZIP:", err);
+        res.status(500).json({ error: "Erro interno ao medir o arquivo ZIP" });
     }
 });
 
