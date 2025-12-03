@@ -120,7 +120,7 @@
                         const data = await res.json();
                         if (data.success && countEl) {
                             // Atualiza a contagem no Card ou Pop-up que foi passado
-                            countEl.textContent = `${data.downloads}`;
+                            countEl.textContent = `${data.downloads} downloads`;
 
                             // Opcional: Se você usa "Mais Baixados", re-renderize para mudar a ordem
                             // if (filterSortSelect.value === 'most-downloaded') {
@@ -281,7 +281,7 @@
                                 <p><strong>Criador:</strong> ${pack.creator}</p>
                                 <p><strong>Versão:</strong> ${pack.version}</p>
                                 <p><strong>Resolução:</strong> ${pack.resolution}</p>
-                                <p class="cont-download"><strong>Downloads:</strong> <span id="popup-download-count">${pack.downloads || 0}</span></p>
+                                <p class="cont-download"><span id="popup-download-count">${pack.downloads} downloads</p>
                             
                                 <p style="font-size: 12px; color: #777;">ID: ${pack.id}</p>
                             </div>
