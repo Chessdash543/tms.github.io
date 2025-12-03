@@ -22,7 +22,7 @@
 
     <div class="top-bar">
         <input type="search" id="search" placeholder="Search Texture Pack...">
-        <button id="searchBtn">Search</button>
+        <!--<button id="searchBtn">Search</button>-->
         <select id="filterResolution">
             <option selected disabled>Resolutions</option>
             <option value="all" selected>All</option>
@@ -67,7 +67,7 @@
             // --- Seletores ---
             const cardsContainer = document.getElementById("cards-container");
             const searchInput = document.getElementById("search");
-            const searchBtn = document.getElementById("searchBtn");
+            //const searchBtn = document.getElementById("searchBtn");
             const filterResolutionSelect = document.getElementById("filterResolution"); 
             const popup = document.getElementById("popup");
             const popupBox = popup.querySelector(".popup-box");
@@ -244,20 +244,46 @@
             }
         
             function filterSearch() {
-                const text = searchInput.value.toLowerCase();
+                const fullText = searchInput.value.toLowerCase();
                 const resolution = filterResolutionSelect.value;
                 const sortOption = filterSortSelect.value;
             
-                // 1. Filtragem (Busca por texto + Resolução)
-                let filtered = texturePacks.filter(pack => 
-                    pack.name.toLowerCase().includes(text) &&
-                    (resolution === "all" || pack.resolution.toLowerCase().includes(resolution))
-                );
+                let searchText = fullText;
+                let creatorFilter = '';
             
-                // 2. Ordenação
+                // 1. Lógica para detectar e extrair o filtro de criador
+                const creatorMatch = fullText.match(/by:\s*([a-z0-9_.-]+)/); 
+                // Expressão regular: procura por 'by:', seguido por zero ou mais espaços, 
+                // e captura o nome do criador (que pode ter letras, números, _ . -)
+
+                if (creatorMatch && creatorMatch[1]) {
+                    creatorFilter = creatorMatch[1].trim(); // Pega o nome do criador
+                    // Remove 'by:<creator>' do texto de busca principal se for o único termo ou para refinar
+                    searchText = fullText.replace(creatorMatch[0], '').trim(); 
+                }
+
+                // 2. Filtragem
+                let filtered = texturePacks.filter(pack => {
+                    const packName = pack.name.toLowerCase();
+                    const packCreator = pack.creator.toLowerCase();
+
+                    // 2a. Filtrar por texto na busca principal (Nome do Pack)
+                    const matchesText = searchText === '' || packName.includes(searchText);
+
+                    // 2b. Filtrar por Criador (se o filtro 'by:' foi usado)
+                    const matchesCreator = creatorFilter === '' || packCreator === creatorFilter;
+                    // Eu usei `===` (igualdade exata) para o criador, mas você pode mudar para `includes()` se quiser busca parcial (e.g., 'by:ch' encontra 'ChessDash').
+
+                    // 2c. Filtrar por Resolução
+                    const matchesResolution = resolution === "all" || pack.resolution.toLowerCase().includes(resolution);
+
+                    return matchesText && matchesCreator && matchesResolution;
+                });
+
+                // 3. Ordenação
                 const sortedAndFiltered = sortPacks(filtered, sortOption);
-            
-                // 3. Renderização
+
+                // 4. Renderização
                 // Resetamos para a primeira página após qualquer mudança de filtro/busca/ordenação
                 currentPage = 1; 
                 renderCards(sortedAndFiltered);
@@ -344,7 +370,7 @@
         
             // --- Listeners de Eventos Globais ---
         
-            searchBtn.addEventListener("click", filterSearch);
+            //searchBtn.addEventListener("click", filterSearch);
             searchInput.addEventListener("input", filterSearch); 
             searchInput.addEventListener("keypress", (e) => { if(e.key === "Enter") filterSearch(); });
         
