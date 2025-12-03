@@ -493,15 +493,21 @@ app.get("/api/packs/:id", (req, res) => {
 // Retorna JSON para rotas /api não encontradas (evita HTML)
 app.use((req, res, next) => {
     if (req.path.startsWith('/api')) {
+        // Se a requisição é para uma rota /api, mas não foi encontrada
         return res.status(404).json({ error: 'Endpoint API não encontrado' });
     }
+    // Se não for uma rota /api, apenas passa para o próximo middleware (ou retorna 404 padrão)
     next();
 });
 
+
 // Handler global de erros — retorna JSON para rotas /api
 app.use((err, req, res, next) => {
-    console.error('Unhandled error:', err && (err.stack || err));
-    if (req.path && req.path.startsWith && req.path.startsWith('/api')) {
+    // É essencial fazer o log do erro para vê-lo no painel de Logs do Vercel
+    console.error('Unhandled error:', err && (err.stack || err)); 
+    
+    // Retorna JSON para rotas /api e texto para outras
+    if (req.path && req.path.startsWith('/api')) {
         return res.status(500).json({ error: 'Erro interno no servidor' });
     }
     res.status(500).send('Erro interno no servidor');
@@ -510,3 +516,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
+
+module.exports = app;
