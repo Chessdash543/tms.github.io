@@ -59,300 +59,320 @@
         </div>
     </div>
 
-    <script>
-        let currentPage = 1;
-        const cardsPerPage = 6;
-        let texturePacks = [];
+        <script>
+            let currentPage = 1;
+            const cardsPerPage = 6;
+            let texturePacks = [];
+        
+            // --- Seletores ---
+            const cardsContainer = document.getElementById("cards-container");
+            const searchInput = document.getElementById("search");
+            const searchBtn = document.getElementById("searchBtn");
+            const filterResolutionSelect = document.getElementById("filterResolution"); 
+            const popup = document.getElementById("popup");
+            const popupBox = popup.querySelector(".popup-box");
+            const addPackBtn = document.getElementById("addPackBtn");
+            const invitePopup = document.getElementById("invite-popup");
+            const inviteCloseBtn = invitePopup.querySelector('.close-invite-btn');
+            const discordInviteLink = document.getElementById('discordInviteLink');
+            const filterSortSelect = document.getElementById("filter"); 
+        
+            const DISCORD_INVITE = 'https://discord.gg/YMGPn26WMN';
 
-        async function fetchPacks() {
-            try {
-                const res = await fetch("/api/packs");
-                const contentType = res.headers.get('content-type') || '';
-
-                if (!res.ok) {
-                    const text = await res.text();
-                    console.error('Failed to fetch packs:', res.status, text);
-                    return;
-                }
-
-                if (contentType.includes('application/json')) {
-                    texturePacks = await res.json();
-                } else {
-                    const text = await res.text();
-                    console.error('Expected JSON from /api/packs but received:', text);
-                    return;
-                }
-
-                // Chamamos filterSearch() para aplicar a ordenação padrão (All) e renderizar.
-                filterSearch();
-            } catch (err) {
-                console.error('Error fetching packs:', err);
-            }
-        }
-
-        fetchPacks();
-
-        const cardsContainer = document.getElementById("cards-container");
-        const searchInput = document.getElementById("search");
-        const searchBtn = document.getElementById("searchBtn");
-        const filterResolutionSelect = document.getElementById("filterResolution"); // Renomeado para clareza
-        const popup = document.getElementById("popup");
-        const popupBox = popup.querySelector(".popup-box");
-        const addPackBtn = document.getElementById("addPackBtn");
-        const invitePopup = document.getElementById("invite-popup");
-        const inviteCloseBtn = invitePopup.querySelector('.close-invite-btn');
-        const discordInviteLink = document.getElementById('discordInviteLink');
-        const filterSortSelect = document.getElementById("filter"); // Seletor para ordenação (Sort)
-
-        const DISCORD_INVITE = 'https://discord.gg/YMGPn26WMN';
-
-        async function trackDownload(packId, downloadUrl, countEl) {
-            try {
-                const res = await fetch(`/api/download/${packId}`, { method: 'POST' });
-                const contentType = res.headers.get('content-type') || '';
-
-                if (!res.ok) {
-                    const text = await res.text();
-                    console.error('Download tracking failed:', res.status, text);
-                } else if (contentType.includes('application/json')) {
-                    const data = await res.json();
-                    if (data.success && countEl) {
-                        countEl.textContent = `${data.downloads} downloads`;
-                        // Opcional: Re-filtrar/ordenar para atualizar a ordem se o contador mudar
-                        // filterSearch();
+            // --- Funções de API ---
+        
+            async function fetchPacks() {
+                try {
+                    const res = await fetch("/api/packs");
+                    const contentType = res.headers.get('content-type') || '';
+                
+                    if (!res.ok) {
+                        const text = await res.text();
+                        console.error('Failed to fetch packs:', res.status, text);
+                        return;
                     }
-                } else {
-                    const text = await res.text();
-                    console.error('Unexpected response for download tracking:', text);
+                
+                    if (contentType.includes('application/json')) {
+                        texturePacks = await res.json();
+                    } else {
+                        const text = await res.text();
+                        console.error('Expected JSON from /api/packs but received:', text);
+                        return;
+                    }
+                
+                    filterSearch(); // Aplica a ordenação padrão (Recente) e renderiza.
+                } catch (err) {
+                    console.error('Error fetching packs:', err);
                 }
-            } catch (err) {
-                console.error('Download tracking failed:', err);
             }
+        
+            fetchPacks();
+        
+            async function trackDownload(packId, downloadUrl, countEl) {
+                try {
+                    const res = await fetch(`/api/download/${packId}`, { method: 'POST' });
+                    const contentType = res.headers.get('content-type') || '';
+                
+                    if (!res.ok) {
+                        const text = await res.text();
+                        console.error('Download tracking failed:', res.status, text);
+                    } else if (contentType.includes('application/json')) {
+                        const data = await res.json();
+                        if (data.success && countEl) {
+                            // Atualiza a contagem no Card ou Pop-up que foi passado
+                            countEl.textContent = `${data.downloads}`;
 
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = '';
-            link.click();
-        }
-
-        function renderCards(list) {
-            cardsContainer.innerHTML = "";
-
-            // Garante que a página não seja maior do que o necessário após a filtragem
-            const totalPagesAfterFilter = Math.ceil(list.length / cardsPerPage);
-            if (currentPage > totalPagesAfterFilter && totalPagesAfterFilter > 0) {
-                currentPage = totalPagesAfterFilter;
-            } else if (list.length === 0) {
-                currentPage = 1;
+                            // Opcional: Se você usa "Mais Baixados", re-renderize para mudar a ordem
+                            // if (filterSortSelect.value === 'most-downloaded') {
+                            //     fetchPacks(); // Re-fetch e re-renderiza toda a lista
+                            // }
+                        }
+                    } else {
+                        const text = await res.text();
+                        console.error('Unexpected response for download tracking:', text);
+                    }
+                } catch (err) {
+                    console.error('Download tracking failed:', err);
+                }
+            
+                // Inicia o download do arquivo após (ou durante) o rastreamento
+                const link = document.createElement('a');
+                link.href = downloadUrl;
+                link.download = '';
+                link.click();
             }
+        
+            // --- Funções de Renderização e Lógica ---
+        
+            function renderCards(list) {
+                cardsContainer.innerHTML = "";
+            
+                const totalPagesAfterFilter = Math.ceil(list.length / cardsPerPage);
 
+                // Ajusta a página atual se necessário
+                if (currentPage > totalPagesAfterFilter && totalPagesAfterFilter > 0) {
+                    currentPage = totalPagesAfterFilter;
+                } else if (list.length === 0) {
+                    currentPage = 1;
+                    cardsContainer.innerHTML = "<p>Nenhum pacote encontrado com os critérios de busca/filtro.</p>";
+                    renderPagination(list);
+                    return;
+                }
+            
+                const start = (currentPage - 1) * cardsPerPage;
+                const end = start + cardsPerPage;
+                const pageItems = list.slice(start, end);
+            
+                if (pageItems.length === 0 && list.length > 0) {
+                    // Se cair em uma página vazia por algum erro de cálculo
+                    currentPage = 1; 
+                    renderCards(list); 
+                    return;
+                }
+            
+            
+                pageItems.forEach(pack => {
+                    const card = document.createElement("div");
+                    card.classList.add("card");
 
-            const start = (currentPage - 1) * cardsPerPage;
-            const end = start + cardsPerPage;
-            const pageItems = list.slice(start, end);
-
-            if (pageItems.length === 0 && list.length > 0) {
-                // Se não houver itens na página atual, mas a lista não estiver vazia, volte para a primeira página.
-                currentPage = 1;
-                renderCards(list); // Renderiza novamente com a página corrigida
-                return;
-            } else if (list.length === 0) {
-                 cardsContainer.innerHTML = "<p>Nenhum pacote encontrado com os critérios de busca/filtro.</p>";
+                    // Atributo de dados para facilitar a busca de elementos no pop-up (se necessário)
+                    card.dataset.id = pack.id; 
+                
+                    card.innerHTML = `
+                        <div class="card-top">
+                            <img src="${pack.icon}" alt="Icon" class="card-icon">
+                            <div class="card-content">
+                                <h3>${pack.name} by ${pack.creator} - ${pack.version}</h3>
+                                <p>${pack.description}</p>
+                                <button class="download-btn" data-id="${pack.id}" data-url="${pack.download}">Download (${pack.version})</button>
+                                <p class="download-count"><small>${pack.downloads || 0} downloads</small></p>
+                                <button class="more-info">i</button>
+                            </div>
+                        </div>
+                        <img src="${pack.screenshot}" alt="screenshot" class="card-screenshot">
+                    `;
+                    
+                    cardsContainer.appendChild(card);
+                    
+                    // Adiciona Listener para o botão de DOWNLOAD do CARD
+                    const dlBtn = card.querySelector(".download-btn");
+                    const countEl = card.querySelector(".download-count small");
+                    dlBtn.addEventListener("click", () => trackDownload(pack.id, pack.download, countEl));
+                    
+                    // Adiciona Listener para o botão de MAIS INFORMAÇÕES
+                    card.querySelector(".more-info").addEventListener("click", () => openPopup(pack));
+                });
+            
+                renderPagination(list);
             }
+        
+            function renderPagination(list) {
+                // ... (Sua função renderPagination está correta e não precisa de alterações)
+                const pagination = document.getElementById("pagination");
+                pagination.innerHTML = "";
+            
+                const totalPages = Math.ceil(list.length / cardsPerPage);
+                if (totalPages <= 1) return;
+            
+                const prev = document.createElement("button");
+                prev.textContent = "Prev";
+                prev.disabled = currentPage === 1;
+                prev.onclick = () => { currentPage--; renderCards(list); }; 
+                pagination.appendChild(prev);
+            
+                for (let i = 1; i <= totalPages; i++) {
+                    const btn = document.createElement("button");
+                    btn.textContent = i;
+                    if (i === currentPage) btn.classList.add("active-page");
+                    btn.onclick = () => { currentPage = i; renderCards(list); };
+                    pagination.appendChild(btn);
+                }
+            
+                const next = document.createElement("button");
+                next.textContent = "Next";
+                next.disabled = currentPage === totalPages;
+                next.onclick = () => { currentPage++; renderCards(list); };
+                pagination.appendChild(next);
+            }
+        
+            function sortPacks(list, sortBy) {
+                if (sortBy === "most-downloaded") {
+                    return [...list].sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
+                }
+                // Assume que a ordem padrão (fetchPacks) é a "Most Recent"
+                return list; 
+            }
+        
+            function filterSearch() {
+                const text = searchInput.value.toLowerCase();
+                const resolution = filterResolutionSelect.value;
+                const sortOption = filterSortSelect.value;
+            
+                // 1. Filtragem (Busca por texto + Resolução)
+                let filtered = texturePacks.filter(pack => 
+                    pack.name.toLowerCase().includes(text) &&
+                    (resolution === "all" || pack.resolution.toLowerCase().includes(resolution))
+                );
+            
+                // 2. Ordenação
+                const sortedAndFiltered = sortPacks(filtered, sortOption);
+            
+                // 3. Renderização
+                // Resetamos para a primeira página após qualquer mudança de filtro/busca/ordenação
+                currentPage = 1; 
+                renderCards(sortedAndFiltered);
+            }
+        
+            // --- Funções de Pop-up ---
+        
+            function openPopup(pack) {
+                // Define o ID no box principal (útil para CSS ou debug)
+                popupBox.dataset.id = pack.id;
 
-
-            pageItems.forEach(pack => {
-                const card = document.createElement("div");
-                card.classList.add("card");
-
-                // *** Nota: Adicione 'data-resolution' no elemento do card para melhor filtragem se necessário
-                // card.dataset.resolution = pack.resolution; 
-
-                card.innerHTML = `
-                    <div class="card-top">
-                        <img src="${pack.icon}" alt="Icon" class="card-icon">
-                        <div class="card-content">
-                            <h3>${pack.name} by ${pack.creator} - ${pack.version}</h3>
-                            <p>${pack.description}</p>
-                            <button class="download-btn" data-id="${pack.id}" data-url="${pack.download}">Download (${pack.version})</button>
-                            <p class="download-count"><small>${pack.downloads || 0} downloads</small></p>
-                            <button class="more-info">i
+                // Define o HTML do Pop-up
+                popupBox.innerHTML = `
+                    <div class="popup-top">
+                        <img src="${pack.icon}" alt="Icone do Pack" class="pack-icon"> 
+                    
+                        <div class="popup-info">
+                            <h2 class="title-popp">${pack.name} - ${pack.version}</h2>
+                        
+                            <div class="info-details-list">
+                                <p><strong>Criador:</strong> ${pack.creator}</p>
+                                <p><strong>Versão:</strong> ${pack.version}</p>
+                                <p><strong>Resolução:</strong> ${pack.resolution}</p>
+                                <p class="cont-download"><strong>Downloads:</strong> <span id="popup-download-count">${pack.downloads || 0}</span></p>
+                            
+                                <p style="font-size: 12px; color: #777;">ID: ${pack.id}</p>
+                            </div>
+                        
+                            <button 
+                                id="popupDownloadBtn" 
+                                class="download-btn"
+                                data-id="${pack.id}" 
+                                data-url="${pack.download}">
+                                Download (${pack.version})
+                            </button>
+                        
+                        </div>
+                    </div>
+                
+                    <div class="popup-bottom-content">
+                    
+                        <p class="description-block">${pack.description || "Descrição não fornecida."}</p>
+                    
+                        <div class="action-links">
+                            <button 
+                                class="details-btn" 
+                                onclick="window.open('pack-detail.html?id=${pack.id}', '_blank')">
+                                View The Post of ${pack.name} &rarr;
                             </button>
                         </div>
                     </div>
-                    <img src="${pack.screenshot}" alt="screenshot" class="card-screenshot">
-                `;
-
-                cardsContainer.appendChild(card);
-
-                const dlBtn = card.querySelector(".download-btn");
-                const countEl = card.querySelector(".download-count small");
-                dlBtn.addEventListener("click", () => trackDownload(pack.id, pack.download, countEl));
-
-                card.querySelector(".more-info").addEventListener("click", () => openPopup(pack));
-            });
-
-            renderPagination(list);
-        }
-
-        function renderPagination(list) {
-            const pagination = document.getElementById("pagination");
-            pagination.innerHTML = "";
-
-            const totalPages = Math.ceil(list.length / cardsPerPage);
-            if (totalPages <= 1) return;
-
-            const prev = document.createElement("button");
-            prev.textContent = "Prev";
-            prev.disabled = currentPage === 1;
-            // Ao clicar em Prev ou Next, forçamos o re-render da lista ATUALMENTE filtrada/ordenada
-            prev.onclick = () => { currentPage--; renderCards(list); }; 
-            pagination.appendChild(prev);
-
-            for (let i = 1; i <= totalPages; i++) {
-                const btn = document.createElement("button");
-                btn.textContent = i;
-                if (i === currentPage) btn.classList.add("active-page");
-                btn.onclick = () => { currentPage = i; renderCards(list); };
-                pagination.appendChild(btn);
-            }
-
-            const next = document.createElement("button");
-            next.textContent = "Next";
-            next.disabled = currentPage === totalPages;
-            next.onclick = () => { currentPage++; renderCards(list); };
-            pagination.appendChild(next);
-        }
-
-        /**
-         * Função para ordenar a lista de pacotes.
-         * @param {Array} list - A lista de pacotes a ser ordenada.
-         * @param {string} sortBy - O valor selecionado no filtro de ordenação.
-         * @returns {Array} A lista ordenada.
-         */
-        function sortPacks(list, sortBy) {
-            if (sortBy === "most-downloaded") {
-                // Ordena em ordem decrescente (do maior número de downloads para o menor)
-                return [...list].sort((a, b) => (b.downloads || 0) - (a.downloads || 0));
-            }
-            // Retorna a lista original para "all" ou qualquer outro valor não reconhecido
-            return list; 
-        }
-
-        function filterSearch() {
-            const text = searchInput.value.toLowerCase();
-            const resolution = filterResolutionSelect.value;
-            const sortOption = filterSortSelect.value; // Obtém a opção de ordenação
-
-            // 1. Filtragem (Busca por texto + Resolução)
-            let filtered = texturePacks.filter(pack => 
-                pack.name.toLowerCase().includes(text) &&
-                (resolution === "all" || pack.resolution.toLowerCase().includes(resolution))
-            );
-
-            // 2. Ordenação
-            const sortedAndFiltered = sortPacks(filtered, sortOption);
-
-            // 3. Renderização
-            // Resetamos para a primeira página após qualquer mudança de filtro/busca/ordenação
-            currentPage = 1; 
-            renderCards(sortedAndFiltered);
-        }
-
-        searchBtn.addEventListener("click", filterSearch);
-        // Alterando o evento para "input" para busca em tempo real (opcional)
-        searchInput.addEventListener("input", filterSearch); 
-        searchInput.addEventListener("keypress", (e) => { if(e.key === "Enter") filterSearch(); });
-
-        // Adiciona o listener para os filtros de Resolução e Ordenação
-        filterResolutionSelect.addEventListener("change", filterSearch);
-        filterSortSelect.addEventListener("change", filterSearch);
-
-        function openPopup(pack) {
-            popupBox.dataset.id = pack.id;
-            // ... (código do openPopup permanece o mesmo, a não ser que você queira ajeitar o link de download para rastrear)
-            popupBox.innerHTML = `
-                <div class="popup-top">
-                    <img src="${pack.icon}" alt="Icone do Pack" class="pack-icon"> 
-
-                    <div class="popup-info">
-                        <h2 class="title-popp">${pack.name}</h2>
-
-                        <div class="info-details-list">
-                            <p><strong>Criador:</strong> ${pack.creator}</p>
-                            <p><strong>Versão:</strong> ${pack.version}</p>
-                            <p><strong>Resolução:</strong> ${pack.resolution}</p>
-                            <p><strong>Downloads:</strong> ${pack.downloads || 0}</p>
-
-                            <p style="font-size: 12px; color: #777;">ID: ${pack.id}</p>
-                        </div>
-                    
-                        <button 
-                            class="download-btn" 
-                            onclick="trackDownload('${pack.id}', '${pack.download}', document.querySelector('.popup-box .download-count'))">
-                            Download (${pack.version})
-                        </button>
-
-                    </div>
-                </div>
-
-                <div class="popup-bottom-content">
-
-                    <p class="description-block">${pack.description || "Descrição não fornecida."}</p>
                 
-                    <div class="action-links">
-                        <button 
-                            class="details-btn" 
-                            onclick="window.open('pack-detail.html?id=${pack.id}', '_blank')">
-                            Ver Página de Detalhes Completa &rarr;
-                        </button>
-                    </div>
-                </div>
+                    <img src="${pack.screenshot}" alt="Screenshot" class="popup-image">
+                
+                    <button id="closePopup" class="closepopup">Close</button>`;
+                
+                // CORREÇÃO CRÍTICA: Anexar o listener ao botão DENTRO do POP-UP recém-criado
+                const popupDlBtn = popupBox.querySelector("#popupDownloadBtn");
+                const popupCountEl = popupBox.querySelector("#popup-download-count"); // Novo ID para o span da contagem
+                
+                if (popupDlBtn && popupCountEl) {
+                    popupDlBtn.addEventListener("click", () => trackDownload(pack.id, pack.download, popupCountEl));
+                }
+            
+                // Exibir o Pop-up
+                popup.style.display = "flex";
+                document.body.classList.add("no-scroll");
 
-                <img src="${pack.screenshot}" alt="Screenshot" class="popup-image">
-
-                <button id="closePopup" class="closepopup">Close</button>`;
-
-            popup.style.display = "flex";
-            document.body.classList.add("no-scroll");
-            const closeBtn = document.getElementById("closePopup");
-            closeBtn.addEventListener("click", () => {
-                popup.style.display = "none";
-                document.body.classList.remove("no-scroll");
-            });
-
-            popup.addEventListener("click", e => {
-                if (e.target === popup) {
+                // Anexar listener de Fechar Pop-up
+                const closeBtn = document.getElementById("closePopup");
+                closeBtn.addEventListener("click", () => {
                     popup.style.display = "none";
                     document.body.classList.remove("no-scroll");
+                });
+            
+                // Listener para fechar clicando fora do box
+                popup.addEventListener("click", e => {
+                    if (e.target === popup) {
+                        popup.style.display = "none";
+                        document.body.classList.remove("no-scroll");
+                    }
+                });
+            }
+        
+            // --- Listeners de Eventos Globais ---
+        
+            searchBtn.addEventListener("click", filterSearch);
+            searchInput.addEventListener("input", filterSearch); 
+            searchInput.addEventListener("keypress", (e) => { if(e.key === "Enter") filterSearch(); });
+        
+            filterResolutionSelect.addEventListener("change", filterSearch);
+            filterSortSelect.addEventListener("change", filterSearch);
+        
+            if (addPackBtn) {
+                addPackBtn.addEventListener('click', () => {
+                    discordInviteLink.href = DISCORD_INVITE;
+                    invitePopup.style.display = 'flex';
+                    document.body.classList.add('no-scroll');
+                });
+            }
+        
+            if (inviteCloseBtn) {
+                inviteCloseBtn.addEventListener('click', () => {
+                    invitePopup.style.display = 'none';
+                    document.body.classList.remove('no-scroll');
+                });
+            }
+        
+            invitePopup.addEventListener('click', e => {
+                if (e.target === invitePopup) {
+                    invitePopup.style.display = 'none';
+                    document.body.classList.remove('no-scroll');
                 }
             });
-        }
-
-        popup.addEventListener("click", e => { if(e.target === popup) popup.style.display = "none"; });
-
-        if (addPackBtn) {
-            addPackBtn.addEventListener('click', () => {
-                discordInviteLink.href = DISCORD_INVITE;
-                invitePopup.style.display = 'flex';
-                document.body.classList.add('no-scroll');
-            });
-        }
-
-        if (inviteCloseBtn) {
-            inviteCloseBtn.addEventListener('click', () => {
-                invitePopup.style.display = 'none';
-                document.body.classList.remove('no-scroll');
-            });
-        }
-
-        invitePopup.addEventListener('click', e => {
-            if (e.target === invitePopup) {
-                invitePopup.style.display = 'none';
-                document.body.classList.remove('no-scroll');
-            }
-        });
-    </script>
+        </script>
 
     <footer class="site-footer" role="contentinfo">
         <div class="footer-inner">

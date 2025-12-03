@@ -167,91 +167,142 @@
         <h2 id="loading-status">Loading...</h2>
     </main>
 
-    <script>
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const packId = urlParams.get('id'); 
-
-            if (packId) {
-                fetchPackDetails(packId);
-            } else {
-                document.getElementById('loading-status').textContent = "Erro: ID do pacote não especificada na URL.";
-            }
-        });
-
-        /**
-         * Busca os detalhes do pack via API e renderiza o conteúdo.
-         * @param {string} id - A ID do pack.
-         */
-        async function fetchPackDetails(id) {
-            const container = document.getElementById('pack-container');
-            const loadingStatus = document.getElementById('loading-status');
-
-            try {
-                // Chama a nova rota de back-end
-                const response = await fetch(`/api/packs/${id}`); 
-
-                if (!response.ok) {
-                    loadingStatus.textContent = "Pack not fond (Erro 404).";
-                    return;
-                }
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const packId = urlParams.get('id'); 
             
-                const pack = await response.json();
-
-                // 2. Renderizar Detalhes
-
-                // Atualiza o Título da Página
-                document.getElementById('packTitle').textContent = `${pack.name} por ${pack.creator} - Texture Makers Server`;
-            
-                // Cria o conteúdo HTML
-                container.innerHTML = `
-                    <div class="detail-header">
-                        <img src="${pack.icon}" alt="Icon" class="pack-icon-large">
-                        <div class="detail-info">
-                            <h1>${pack.name}</h1>
-                            <p><strong>Criador:</strong> ${pack.creator}</p>
-                            <p><strong>Resolução:</strong> ${pack.resolution}</p>
-                            <p><strong>Versão:</strong> ${pack.version}</p>
-                            <p><strong>Downloads:</strong> <span id="detail-downloads">${pack.downloads || 0}</span></p>
-                            <p><strong>ID:</strong> ${pack.id}</p>
-                            <p class="description">${pack.description || "Nenhuma descrição fornecida."}</p>
-
-                            <button id="detailDownloadBtn" class="download-btn" data-id="${pack.id}" data-url="${pack.download}">
-                                Download (${pack.version})
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="screenshot-display">
-                        <img src="${pack.screenshot}" alt="Screenshot principal" class="pack-screenshot-large">
-                        </div>
-                `;
-                    
-                // 3. Adicionar Listener de Download e Rastreamento (Função trackDownload deve ser global/importada)
-                const dlBtn = document.getElementById("detailDownloadBtn");
-                const countEl = document.getElementById("detail-downloads");
-                    
-                // Adiciona um listener para a função de rastreamento de download (que está no seu index.html original)
-                // Para reutilizar o 'trackDownload', você precisaria torná-lo global ou copiá-lo para cá.
-                // Assumindo que você o tornará global (removendo o 'let' ou 'const' na função original e anexando ao 'window')
-                if (typeof window.trackDownload === 'function') {
-                    dlBtn.addEventListener("click", () => window.trackDownload(pack.id, pack.download, countEl));
+                if (packId) {
+                    fetchPackDetails(packId);
                 } else {
-                    // Se a função trackDownload não for global, o botão apenas fará o download:
-                    dlBtn.addEventListener("click", () => {
-                        const link = document.createElement('a');
-                        link.href = pack.download;
-                        link.download = '';
-                        link.click();
-                    });
+                    document.getElementById('loading-status').textContent = "Erro: ID do pacote não especificada na URL.";
+                }
+            });
+        
+            /**
+             * Rastreia o clique de download, incrementa a contagem via API e inicia o download.
+             * Esta função interage com seu backend na rota /api/download/:id (POST).
+             * * @param {string} packId - O ID exclusivo do pacote.
+             * @param {string} downloadUrl - A URL direta para o arquivo do pacote.
+             * @param {HTMLElement} countElement - O elemento que exibe o número de downloads na página.
+             */
+            async function trackDownload(packId, downloadUrl, countElement) {
+                // Seleciona o botão dentro do cabeçalho de detalhes para manipulação
+                const dlBtn = document.getElementById("detailDownloadBtn");
+                
+                if (dlBtn) {
+                    dlBtn.disabled = true;
+                    dlBtn.textContent = 'Baixando...';
                 }
             
-            } catch (error) {
-                console.error('Erro ao carregar pack:', error);
-                container.innerHTML = `<h2 style="color: red;">Não foi possível carregar o pack. Tente mais tarde.</h2>`;
+                try {
+                    // 1. CHAMA A API DO BACKEND para registrar o clique
+                    const response = await fetch(`/api/download/${packId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    
+                    const data = await response.json();
+                
+                    if (response.ok && data.success) {
+                        console.log(`Download rastreado com sucesso. Novo total: ${data.downloads}`);
+                        
+                        // 2. ATUALIZA A CONTAGEM no frontend
+                        if (countElement) {
+                            countElement.textContent = data.downloads;
+                        }
+                    } else {
+                        console.error('Erro ao rastrear o download na API:', data.error || 'Erro desconhecido');
+                    }
+                
+                } catch (error) {
+                    console.error('Falha na comunicação com o servidor de rastreamento:', error);
+                    // O rastreamento falhou, mas ainda tentamos o download
+                } finally {
+                    // 3. INICIA O DOWNLOAD (mesmo que o rastreamento tenha falhado)
+                    window.location.href = downloadUrl;
+                    
+                    // Reativa o botão (opcional, pode ser redundante se a página for recarregada)
+                    if (dlBtn) {
+                        dlBtn.disabled = false;
+                        // Reverte o texto do botão. Se você tiver a versão no data-set, use-a.
+                        // Caso contrário, você pode pegar do pack antes de definir o innerHTML ou simplificar.
+                        const packVersion = dlBtn.getAttribute('data-version') || 'Ver.'; 
+                        dlBtn.textContent = `Download (${packVersion})`; 
+                    }
+                }
             }
-        }
-    </script>
+        
+        
+            /**
+             * Busca os detalhes do pack via API, renderiza o conteúdo e configura os eventos.
+             * @param {string} id - A ID do pack.
+             */
+            async function fetchPackDetails(id) {
+                const container = document.getElementById('pack-container');
+                const loadingStatus = document.getElementById('loading-status');
+            
+                // Garante que o status de carregamento apareça enquanto buscamos os dados
+                container.innerHTML = `<h2 id="loading-status">Carregando detalhes do pacote...</h2>`;
+            
+                try {
+                    // Chama a rota de back-end para buscar os dados do pacote
+                    const response = await fetch(`/api/packs/${id}`); 
+                
+                    if (!response.ok) {
+                        loadingStatus.textContent = "Pack não encontrado (Erro 404).";
+                        return;
+                    }
+                
+                    const pack = await response.json();
+                
+                    // Atualiza o Título da Página
+                    document.getElementById('packTitle').textContent = `${pack.name} por ${pack.creator}`;
+                    
+                    // 2. Cria o conteúdo HTML (com ID de contagem e data-version no botão)
+                    container.innerHTML = `
+                        <div class="detail-header">
+                            <img src="${pack.icon}" alt="Icon" class="pack-icon-large">
+                            <div class="detail-info">
+                                <h1>${pack.name}</h1>
+                                <p><strong>Criador:</strong> ${pack.creator}</p>
+                                <p><strong>Resolução:</strong> ${pack.resolution}</p>
+                                <p><strong>Versão:</strong> ${pack.version}</p>
+                                <p><strong>Downloads:</strong> <span id="detail-downloads">${pack.downloads || 0}</span></p>
+                                <p><strong>ID:</strong> ${pack.id}</p>
+                                <p class="description">${pack.description || "Nenhuma descrição fornecida."}</p>
+                            
+                                <button id="detailDownloadBtn" class="download-btn" 
+                                        data-id="${pack.id}" 
+                                        data-url="${pack.download}" 
+                                        data-version="${pack.version}">
+                                    Download (${pack.version})
+                                </button>
+                            </div>
+                        </div>
+                    
+                        <div class="screenshot-display">
+                            <h2>Screenshots</h2>
+                            <img src="${pack.screenshot}" alt="Screenshot principal" class="pack-screenshot-large">
+                        </div>
+                    `;
+                        
+                    // 3. Adicionar Listener de Download e Rastreamento (após o innerHTML)
+                    const dlBtn = document.getElementById("detailDownloadBtn");
+                    const countEl = document.getElementById("detail-downloads");
+                        
+                    if (dlBtn && countEl) {
+                        // Passa o ID, URL do arquivo e o elemento para atualização
+                        dlBtn.addEventListener("click", () => trackDownload(pack.id, pack.download, countEl));
+                    }
+                
+                } catch (error) {
+                    console.error('Erro ao carregar pack:', error);
+                    container.innerHTML = `<h2 style="color: red;">Não foi possível carregar o pack. Verifique sua conexão ou tente mais tarde.</h2>`;
+                }
+            }
+        </script>
 </body>
 </html>
