@@ -32,7 +32,7 @@
         </select>
         <select id="filter">
             <option selected disabled>Filter</option>
-            <option value="most-recent" selected>Most Recent</option>
+            <option value="most-Older" selected>Most Recent</option>
             <option value="most-downloaded">Most Dowloaded</option>
         </select>
         <button id="addPackBtn" class="add-pack-btn">Add my texture pack</button>
@@ -61,10 +61,9 @@
 
         <script>
             let currentPage = 1;
-            const cardsPerPage = 6;
+            const cardsPerPage = 5;
             let texturePacks = [];
         
-            // --- Seletores ---
             const cardsContainer = document.getElementById("cards-container");
             const searchInput = document.getElementById("search");
             //const searchBtn = document.getElementById("searchBtn");

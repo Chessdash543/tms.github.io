@@ -182,5 +182,35 @@
     "icon": "/uploads/FREAKINGDAN.DeterminationfontPack/1764872876842-pack.png",
     "screenshot": "/uploads/FREAKINGDAN.DeterminationfontPack/1764872876843-Determination_Thumbnail_20251204_112254_0000.png",
     "downloads": 1
+  },
+  {
+    "id": "zapher.frutigerdash",
+    "name": "Frutiger Aero Dash",
+    "creator": "Zapher",
+    "description": "The promised future we never got, now in Geometry Dash!",
+    "version": "v1.5.2",
+    "resolution": [
+      "medium",
+      "high"
+    ],
+    "download": "/uploads/zapher.frutigerdash/1764888013986-Aero Dash Workshop.zip",
+    "icon": "/uploads/zapher.frutigerdash/1764888014502-pack-6.png",
+    "screenshot": "/uploads/zapher.frutigerdash/1764888014506-86_sin_titulo_20251204154144.png",
+    "downloads": 0
+  },
+  {
+    "id": "freadfries.packofchi",
+    "name": "Pack of Chi",
+    "creator": "FreadFries",
+    "description": "A purple texture pack with support for many mods and semi-transparent menus. Shoutout to Jaid and NamesTesla for finding out bugs, and slideglide for providing the hardcoded colors used by Happy Textures.",
+    "version": "v1.2.0",
+    "resolution": [
+      "medium",
+      "high"
+    ],
+    "download": "/uploads/freadfries.packofchi/1764888196124-Pack.of.Chi.zip",
+    "icon": "/uploads/freadfries.packofchi/1764888197832-pack-5.png",
+    "screenshot": "/uploads/freadfries.packofchi/1764888197835-86_sin_titulo_20251204154500.png",
+    "downloads": 0
   }
 ]
